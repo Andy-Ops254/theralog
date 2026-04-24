@@ -11,6 +11,11 @@ class Clinician (db.Model):
     is_active = db.Column(db.Boolean)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
+    patients=db.relationship('Patient', back_populates='clinicians')
+    sessions=db.relationship('Session', back_populates='clinicians')
+    referrals=db.relationship('Referral', back_popuates='clinicians')
+    auditLogs=db.relationship('AuditLog', back_populates='clinicians')
+
 
     def __repr__(self):
         return (
@@ -33,6 +38,10 @@ class Patient(db.Model):
     date_of_admission =db.Column(db.DateTime, server_default=db.func.now())
     created_at=db.Column(db.DateTime, server_default=db.func.now())
 
+    clinicians=db.relationship('Clinician', back_populates='patients')
+    sessions=db.relationship('Session', back_populates='patients')
+    referrals=db.relationship('Referral', back_populates='patients')
+
     def __repr__(self):
         return (
             f"full_name={self.full_name}, date_of_birth={self.date_of_birth},"
@@ -54,6 +63,9 @@ class Session(db.Model):
     created_at=db.Column(db.DateTime, server_default=db.func.now())
     updated_at=db.Column(db.DateTime, server_default=db.func.now())
 
+    patients=db.relationship('Patient', back_populates='sessions')
+    clinicians=db.relationship('Clinician', back_Populates='sessions')
+
     def __repr__(self):
         return(
             f"patient_id={self.patient_id}, clinician_id={self.clinician_id},"
@@ -74,6 +86,9 @@ class Referral(db.Model):
     sessions_completed = db.Column(db.Integer)
     created_at=db.Column(db.DateTime, server_default=db.func.now())
 
+    clinicians=db.relationship('Clinicians', back_populates='referrals')
+    patients=db.relationship('Patient', back_populates='referrals')
+
     def __repr__(self):
             return(
                 f"patient_id={self.patient_id}, clinician_id={self.clinician_id},"
@@ -90,6 +105,8 @@ class AuditLog(db.Model):
     action=db.Column(db.String)
     entity=db.Column(db.String)
     time=db.Column(db.DateTime)
+
+    clinicians=db.relationship('Clinician', back_populates='auditLogs')
 
 
     def __repr__(self):
