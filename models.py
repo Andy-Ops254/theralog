@@ -1,6 +1,7 @@
 from extensions import db
+from sqlalchemy_serializer import SerializerMixin
 
-class Clinician (db.Model):
+class Clinician (db.Model, SerializerMixin):
     __tablename__='clinicians'
 
     id = db.Column(db.Integer,primary_key=True)
@@ -16,6 +17,8 @@ class Clinician (db.Model):
     referrals=db.relationship('Referral', back_popuates='clinicians')
     auditLogs=db.relationship('AuditLog', back_populates='clinicians')
 
+    serialize_rules=('-patients.clinicians', '-sessions.clinicians', '-referrals.clinicians', '-auditLogs.clinicians')
+
 
     def __repr__(self):
         return (
@@ -25,7 +28,7 @@ class Clinician (db.Model):
         )
     
 
-class Patient(db.Model):
+class Patient(db.Model, SerializerMixin):
     __tablename__= 'patients'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -42,6 +45,8 @@ class Patient(db.Model):
     sessions=db.relationship('Session', back_populates='patients')
     referrals=db.relationship('Referral', back_populates='patients')
 
+    serialize_rules=('-clinicians.patients', '-sessions.patients', '-referrals.patients')
+
     def __repr__(self):
         return (
             f"full_name={self.full_name}, date_of_birth={self.date_of_birth},"
@@ -51,7 +56,7 @@ class Patient(db.Model):
         ) 
     
 
-class Session(db.Model):
+class Session(db.Model, SerializerMixin):
     __tablename__='sessions'
 
     id= db.Column(db.Integer, primary_key=True)
@@ -66,6 +71,8 @@ class Session(db.Model):
     patients=db.relationship('Patient', back_populates='sessions')
     clinicians=db.relationship('Clinician', back_Populates='sessions')
 
+    serialize_rules=('-patients.sessions', '-clinicians.sessions')
+
     def __repr__(self):
         return(
             f"patient_id={self.patient_id}, clinician_id={self.clinician_id},"
@@ -74,7 +81,7 @@ class Session(db.Model):
         )
     
 
-class Referral(db.Model):
+class Referral(db.Model, SerializerMixin):
     __tablename__='referrals'
 
     id=db.Column(db.Integer, primary_key=True)
@@ -89,6 +96,8 @@ class Referral(db.Model):
     clinicians=db.relationship('Clinicians', back_populates='referrals')
     patients=db.relationship('Patient', back_populates='referrals')
 
+    serialize_rules=('-clinicians.referrals', '-patients.referrals')
+
     def __repr__(self):
             return(
                 f"patient_id={self.patient_id}, clinician_id={self.clinician_id},"
@@ -97,7 +106,7 @@ class Referral(db.Model):
             )
 
 
-class AuditLog(db.Model):
+class AuditLog(db.Model, SerializerMixin):
     __tablename__='auditLogs'
 
     id=db.Column(db.Integer, primary_key=True)
@@ -107,6 +116,8 @@ class AuditLog(db.Model):
     time=db.Column(db.DateTime)
 
     clinicians=db.relationship('Clinician', back_populates='auditLogs')
+
+    serialize_rules=('-clinicians.auditLogs')
 
 
     def __repr__(self):
