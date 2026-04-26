@@ -11,7 +11,7 @@ wheels/
 venv/
 env/
 
-# Environment variables (VERY IMPORTANT)
+# Environment variables
 .env
 .env.*
 !.env.example
@@ -22,8 +22,15 @@ env/
 # Logs
 *.log
 
-# Database (if using SQLite locally)
+# Database (SQLite only)
 *.sqlite3
+*.db
+
+# Flask instance folder
+instance/
+
+# Flask-Migrate / Alembic (optional for dev)
+migrations/
 
 # OS files
 .DS_Store
@@ -44,3 +51,4 @@ htmlcov/
 # Temporary files
 *.swp
 *.swo
+*.tmp
