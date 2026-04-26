@@ -14,7 +14,7 @@ class Clinician (db.Model, SerializerMixin):
 
     patients=db.relationship('Patient', back_populates='clinicians')
     sessions=db.relationship('Session', back_populates='clinicians')
-    referrals=db.relationship('Referral', back_popuates='clinicians')
+    referrals=db.relationship('Referral', back_populates='clinicians')
     auditLogs=db.relationship('AuditLog', back_populates='clinicians')
 
     serialize_rules=('-patients.clinicians', '-sessions.clinicians', '-referrals.clinicians', '-auditLogs.clinicians')
@@ -36,7 +36,7 @@ class Patient(db.Model, SerializerMixin):
     date_of_birth = db.Column(db.Date)
     sex = db.Column(db.String, nullable=False)
     condition= db.Column(db.String)
-    clinician_id =db.Column(db.Integer, db.ForeignKey('clinicans.id'))
+    clinician_id =db.Column(db.Integer, db.ForeignKey('clinicians.id'))
     status = db.Column(db.String)
     date_of_admission =db.Column(db.DateTime, server_default=db.func.now())
     created_at=db.Column(db.DateTime, server_default=db.func.now())
@@ -69,7 +69,7 @@ class Session(db.Model, SerializerMixin):
     updated_at=db.Column(db.DateTime, server_default=db.func.now())
 
     patients=db.relationship('Patient', back_populates='sessions')
-    clinicians=db.relationship('Clinician', back_Populates='sessions')
+    clinicians=db.relationship('Clinician', back_populates='sessions')
 
     serialize_rules=('-patients.sessions', '-clinicians.sessions')
 
