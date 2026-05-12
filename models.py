@@ -1,5 +1,6 @@
-from extensions import db
+from extensions import db, bcrypt
 from sqlalchemy_serializer import SerializerMixin
+from sqlalchemy.orm import validates
 
 class Clinician (db.Model, SerializerMixin):
     __tablename__='clinicians'
@@ -11,6 +12,25 @@ class Clinician (db.Model, SerializerMixin):
     role = db.Column(db.String)
     is_active = db.Column(db.Boolean)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    @validates('email')
+    def validate_email(self, key, value):
+        if key== 'email' and '@' not in value:
+            raise TypeError('Invalid email format!!')
+    
+    @property
+    def password(self):
+        raise AttributeError("Woops! Passwordis not readable!")
+    
+    @password.setter
+    def password(self, raw_password):
+        if len(raw_password)< 8:
+            raise ValueError("Password must be 8 characters long!")
+        
+        password_hash=bcrypt.generate_password_hash(
+            raw_password.encode('utf-8')
+        )
+        self.password_hash=password_hash.decode('utf-8')
 
     patients=db.relationship('Patient', back_populates='clinicians')
     sessions=db.relationship('Session', back_populates='clinicians')
@@ -94,6 +114,7 @@ class Referral(db.Model, SerializerMixin):
     created_at=db.Column(db.DateTime, server_default=db.func.now())
 
     clinicians=db.relationship('Clinicians', back_populates='referrals')
+    clinicians=db.relationship('Clinician', back_populates='referrals')
     patients=db.relationship('Patient', back_populates='referrals')
 
     serialize_rules=('-clinicians.referrals', '-patients.referrals')
