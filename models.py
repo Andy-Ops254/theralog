@@ -15,8 +15,9 @@ class Clinician (db.Model, SerializerMixin):
 
     @validates('email')
     def validate_email(self, key, value):
-        if key== 'email' and '@' not in value:
+        if key == 'email' and '@' not in value:
             raise TypeError('Invalid email format!!')
+        return value
     
     @property
     def password(self):
