@@ -94,6 +94,47 @@ def create_app():
         db.session.commit()
         Clinician_dict = new_clinician.to_dict(only=("id", "email", "name", "role", "is_active"))
         return make_response(Clinician_dict, 201)
+    
+    @app.route("/new_patient", methods=['POST'])
+    def new_patient():
+        data = request.get_json()
+
+        if not data:
+            return jsonify({"error": "Please fill in the required fields!!"}), 400
+        
+        id = data.get("id")
+        full_name = data.get('full_name')
+        date_of_birth = data.get('date_of_birth')
+        sex = data.get('sex')
+        condition = data.get('condition')
+        clinician_id = data.get("clinician_id")
+        status = data.get("status")
+        date_of_admission = data.get("date_of_admission")
+
+        patient = Patient.query.filter_by(id=id).first()
+        if patient:
+            return jsonify ({"error":"Patient already exists!"}), 409
+        
+        else:
+            new_patient = Patient(
+                id=id,
+                full_name=full_name,
+                date_of_birth = date_of_birth,
+                sex = sex,
+                condition = condition,
+                clinician_id = clinician_id,
+                status = status,
+                date_of_admission = date_of_admission
+            )
+            db.session.add(new_patient)
+            db.session.commit()
+            patient_dict = new_patient.to_dict(only=(
+                "id", "full_name", "sex", "date_of_birth", 
+                "condition", "clinician_id", "status", 
+                "date_of_admission", "created_at"))
+            
+            return make_response(patient_dict, 201)
+
 
     return app
 
