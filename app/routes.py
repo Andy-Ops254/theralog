@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify, make_response
 from datetime import timedelta
 from flask_jwt_extended import create_access_token, create_refresh_token
-from server.app.extensions import db, bcrypt
-from server.app.models import Clinician, Patient
+from .extensions import db, bcrypt
+from .models import Clinician, Patient
 
 #blueprint creation for the routes
 api=Blueprint('api', __name__)
