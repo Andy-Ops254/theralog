@@ -111,6 +111,30 @@ def new_patient():
 
 @api.route("/patients", methods=['GET'])
 def read_patients():
-    pass
+    
+    #database querying 
+    patients = Patient.query.all()
+
+    if not patients:
+        return jsonify ({"error": "Patients not found!"}), 404
+    
+    response = [
+    {
+        "full_name" : patient.full_name,
+        "date_of_birth":patient.date_of_birth,
+        "sex": patient.sex,
+        "condition": patient.condition,
+        "status": patient.status,
+        "date_of_admission": patient.date_of_admission.isoformat(),
+        "created_at": patient.created_at.isoformat()
+    }
+    
+    #loop through each patient
+    for patient in patients
+    ]
+    return jsonify ({
+        "Total patients": len(patients),
+        "patients": response
+    }), 200
 
 
