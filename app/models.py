@@ -1,4 +1,4 @@
-from extensions import db, bcrypt
+from server.app.extensions import db, bcrypt
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.orm import validates
 
