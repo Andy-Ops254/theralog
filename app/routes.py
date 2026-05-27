@@ -137,4 +137,54 @@ def read_patients():
         "patients": response
     }), 200
 
+@api.route('/patient/<string:full_name>', methods=['GET', 'PATCH'])
+def get_patient(full_name):
+    if request.method == 'GET':
+        #get the full name from the client side
+        # full_name = request.args.get("full_name")
 
+        # if not full_name:
+        #     return jsonify({"error": "full_name input is required!"}), 200
+        #db query
+        patient = Patient.query.filter_by(full_name=full_name).first()
+
+        if not patient:
+            return jsonify({"error": "Patient is not found!"}), 404
+
+        response = {
+
+            "full_name" : patient.full_name,
+            "date_of_birth":patient.date_of_birth.isoformat(),
+            "sex": patient.sex,
+            "condition": patient.condition,
+            "status": patient.status,
+            "date_of_admission": patient.date_of_admission.isoformat(),
+            "created_at": patient.created_at.isoformat()
+        }
+
+        return jsonify (response), 200
+
+    elif request.method == 'PATCH':
+        #querying the client
+        patient = Patient.query.filter_by(full_name=full_name)
+
+        if not patient:
+            return jsonify({"error": "Patient not found!"}), 404
+        
+        #get the data from the client
+        data = request.get_json()
+        if not data:
+            return jsonify({"error":"No data provided"}), 400
+        
+        #define allowed fields
+        allowed_fields = ['full_name', 'date_of_birth', 'sex', 'condition', 'status', 'date_of_admission']
+
+        #loop through and update the allowed fields
+
+        for field in allowed_fields:
+            if field in data:
+                setattr(patient, field, data[field])
+
+        db.session.commit()
+
+        return jsonify({'message': 'Patient has successfully been updated'}), 200
