@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, make_response
 from datetime import timedelta
 from flask_jwt_extended import create_access_token, create_refresh_token
 from .extensions import db, bcrypt
-from .models import Clinician, Patient
+from .models import Clinician, Patient,Session
 
 #blueprint creation for the routes
 api=Blueprint('api', __name__)
@@ -152,7 +152,7 @@ def get_patient(full_name):
             return jsonify({"error": "Patient is not found!"}), 404
 
         response = {
-
+            "patient_id":patient.id,
             "full_name" : patient.full_name,
             "date_of_birth":patient.date_of_birth.isoformat(),
             "sex": patient.sex,
@@ -166,7 +166,7 @@ def get_patient(full_name):
 
     elif request.method == 'PATCH':
         #querying the client
-        patient = Patient.query.filter_by(full_name=full_name)
+        patient = Patient.query.filter_by(full_name=full_name).first()
 
         if not patient:
             return jsonify({"error": "Patient not found!"}), 404
@@ -188,3 +188,83 @@ def get_patient(full_name):
         db.session.commit()
 
         return jsonify({'message': 'Patient has successfully been updated'}), 200
+    
+
+@api.route('/patient/<int:patient_id>/sessions', methods=['GET'])
+def patients_sessions(patient_id):
+    #patient query
+    patient = Patient.query.filter_by(patient_id=patient_id).first()
+
+    if not patient:
+        return jsonify({"error": "Patient not found!"}), 404
+    
+    #if patient is found we query the sessions
+    sessions=Session.query.filter_by(patient_id=patient_id).all()
+
+    if not sessions:
+        return jsonify ({'error': "No sessions found"}), 404
+
+    response = [
+        {
+        "session_date":session.session_date.isoformat(),
+        "notes": session.notes,
+        "status": session.status,
+        "created_at":session.created_at.isoformat()
+    }
+        for session in sessions
+    ]
+
+    return jsonify({
+        "patient's name":patient.full_name,
+        "total_sessions": len(sessions),
+        "sessions": response
+    }),200
+
+
+@api.route('/patient/<int:id>/session', methods=['POST', 'PATCH'])
+def create_sessions(id):
+    if request.method=='POST':
+        patient = Patient.query.filter_by(id=id).first()
+        if not patient:
+            return jsonify({"error": "Patient not found!"}), 404
+
+        #extract what the client has sent in json
+        data = request.get_json()
+        print(data)
+        # clinician_id = data.get('clinician_id')
+        session_date=data.get('session_date')
+        print(session_date)
+        notes = data.get('notes')
+        status = data.get('status')
+
+
+        new_session= Session(
+            id=id,
+            session_date = session_date,
+            notes = notes,
+            status = status,
+        )
+
+        db.session.add(new_session)
+        db.session.commit()
+
+        return jsonify(new_session.to_dict()), 201
+    
+    elif request.method=='PATCH':
+        patient = Patient.query.filter_by(id=id).first()
+
+        if not patient:
+            return jsonify({"error": "Patient not found!"}), 404
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data sent"}), 404
+        
+        allowed_fields = ['session_date', 'notes', 'status']
+
+        for field in allowed_fields:
+            if field in data:
+                setattr(patient, field, data[field])
+
+        db.session.commit()
+        return jsonify ({"message": "session updated successfully"}), 200
