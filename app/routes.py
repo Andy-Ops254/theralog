@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify, make_response
 from datetime import timedelta
-from flask_jwt_extended import create_access_token, create_refresh_token
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
 from .extensions import db, bcrypt
-from .models import Clinician, Patient,Session
+from .models import Clinician, Patient,Session, Referral
 
 #blueprint creation for the routes
 api=Blueprint('api', __name__)
@@ -137,8 +137,8 @@ def read_patients():
         "patients": response
     }), 200
 
-@api.route('/patient/<string:full_name>', methods=['GET', 'PATCH'])
-def get_patient(full_name):
+@api.route('/patient/<int:id>', methods=['GET', 'PATCH'])
+def get_patient(id):
     if request.method == 'GET':
         #get the full name from the client side
         # full_name = request.args.get("full_name")
@@ -146,7 +146,7 @@ def get_patient(full_name):
         # if not full_name:
         #     return jsonify({"error": "full_name input is required!"}), 200
         #db query
-        patient = Patient.query.filter_by(full_name=full_name).first()
+        patient = Patient.query.filter_by(id=id).first()
 
         if not patient:
             return jsonify({"error": "Patient is not found!"}), 404
@@ -224,11 +224,16 @@ def patients_sessions(patient_id):
 
 
 @api.route('/patient/<int:id>/session', methods=['POST', 'PATCH'])
+@jwt_required()
 def create_sessions(id):
     if request.method=='POST':
         patient = Patient.query.filter_by(id=id).first()
         if not patient:
             return jsonify({"error": "Patient not found!"}), 404
+
+        identity = get_jwt_identity()
+        clinician_id = identity.get('clinican_id')
+
 
         #extract what the client has sent in json
         data = request.get_json()
@@ -242,6 +247,7 @@ def create_sessions(id):
 
         new_session= Session(
             id=id,
+            clinician_id=clinician_id,
             session_date = session_date,
             notes = notes,
             status = status,
@@ -286,3 +292,37 @@ def delete_session(id, session_id):
         db.session.commit()
 
         return jsonify({"message": "Session has been successfully deleted!"}), 200
+
+
+@api.route('/patient/<int:id>/referral', methods=['POST'])
+@jwt_required()
+def create_referrals(id):
+
+    patient = Patient.query.filter_by(id=id)
+    if not patient:
+        return jsonify({"error": "Patient not found!"}), 404
+    
+    #get clinician id from jwt token- whoever is logged in
+    identity = get_jwt_identity()
+    clinician_id = identity.get('clinician_id')
+    
+    data = request.get_json()
+    if not data:
+        return jsonify ({"Error": "No data was sent!"}), 404
+    
+    reason = data.get('reason')
+    summary = data.get('summary')
+    sessions_completed= data.get('sessions_completed')
+
+    new_referral = Referral(
+        id = id,
+        clinician_id = clinician_id,
+        reason=reason,
+        summary = summary,
+        sessions_completed = sessions_completed
+    )
+    db.session.add(new_referral)
+    db.session.commit()
+
+    return make_response(new_referral.to_dict()), 201
+    
