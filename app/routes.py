@@ -206,6 +206,8 @@ def patients_sessions(patient_id):
 
     response = [
         {
+        "patient_id":session.patient_id,
+        "clinician_id":session.clinician_id,
         "session_date":session.session_date.isoformat(),
         "notes": session.notes,
         "status": session.status,
@@ -268,3 +270,19 @@ def create_sessions(id):
 
         db.session.commit()
         return jsonify ({"message": "session updated successfully"}), 200
+    
+@api.route('/patient/<int:id>/session/<int:session_id>', methods=['DELETE'])
+def delete_session(id, session_id):
+        patient = Patient.query.filter_by(id=id).first()
+
+        if not patient:
+            return jsonify ({"error": "patient not found!"}), 404
+        session = Session.query.filter_by(id=session_id).first()
+
+        if not session:
+            return jsonify({"error": "session not found!"}), 404
+
+        db.session.delete(session)
+        db.session.commit()
+
+        return jsonify({"message": "Session has been successfully deleted!"}), 200
