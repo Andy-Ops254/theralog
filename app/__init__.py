@@ -2,7 +2,7 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 
 from .config import Config
-from .extensions import db, migrate, bcrypt
+from .extensions import db, migrate, bcrypt, jwt
 
 
 def create_app():
@@ -17,9 +17,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     bcrypt.init_app(app)
-    
-    # Initialize JWT
-    jwt = JWTManager(app)
+    jwt.init_app(app)
     
     # Register blueprints
     from .routes import api

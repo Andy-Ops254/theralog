@@ -1,11 +1,20 @@
 from flask import Blueprint, request, jsonify, make_response
 from datetime import timedelta
-from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
-from .extensions import db, bcrypt
-from .models import Clinician, Patient,Session, Referral
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required, get_jwt
+from .extensions import db, bcrypt, jwt, blacklist
+from .models import Clinician, Patient, Session, Referral, TokenBlacklist
 
 #blueprint creation for the routes
 api=Blueprint('api', __name__)
+
+#blaclist checker, checks if the access token is the blacklist model
+@jwt.token_in_blocklist_loader
+def check_if_token_revoked(jwt_header, jwt_payload):
+    jti=jwt_payload.get("jti")
+    #check the database for the jti
+    token = TokenBlacklist.query.filter_by(jti=jti).first()
+    return token is not None
+
 
 @api.route('/login', methods=['POST'])
 def clinician_login():
@@ -45,6 +54,16 @@ def clinician_login():
     }), 200
     
 
+@api.route('/logout', methods=['DELETE'])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"] #gets the token id
+    #save the token to the DB
+    blacklisted_token = TokenBlacklist(jti=jti)
+    db.session.add(blacklisted_token)
+    db.session.commit()
+    return jsonify({"message": "Successfully logged out"}), 200
+
 @api.route("/register", methods=['POST'])
 def register_clinician():
     data = request.get_json()
@@ -69,6 +88,15 @@ def register_clinician():
     db.session.commit()
     Clinician_dict = new_clinician.to_dict(only=("id", "email", "name", "role", "is_active"))
     return make_response(Clinician_dict, 201)
+
+#refresh token
+@api.route('/token/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_token():
+    identity = get_jwt_identity()
+    new_access = create_access_token(identity=identity, expires_delta=timedelta(hours=24))
+    return jsonify({"access_token": new_access}), 200
+
     
 @api.route("/new_patient", methods=['POST'])
 def new_patient():

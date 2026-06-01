@@ -147,5 +147,13 @@ class AuditLog(db.Model, SerializerMixin):
             f"clinician_id={self.clinician_id}, action={self.action},"
             f"entity={self.entity}, time={self.time}"
         )
+    
+
+# create a model for blacklisted tokens
+class TokenBlacklist(db.Model):
+    __tablename__ = "token_blacklist"
+    id = db.Column(db.Integer, primary_key=True)
+    jti = db.Column(db.String, unique=True, nullable=False)  # token id
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
 
 
