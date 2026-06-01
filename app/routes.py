@@ -379,7 +379,34 @@ def clinic_referrals():
 
         return jsonify ({"message": "Referral cretated successfully"}), 201 
 
+@api.route('/referrals/<int:id>', methods=['PATCH', 'DELETE'])
+def update_delete(id):
+    if request.method=='PATCH':
+        referral = Referral.query.filter_by(id=id).first()
+        if not referral:
+            return jsonify({"error": "Referral not found"}), 404
+        
+        data= request.get_json()
+        if not data:
+            return jsonify({"erro":"No data sent!"}), 404
+        
+        allowed_fields = ['patient_id', 'referred_to', 'reason', 'summary', 'sessions_completed']
 
+        for field in allowed_fields:
+            if field in data:
+                setattr(referral, field, data[field])
+
+        db.session.commit()
+        return jsonify({"message": "Referral field successfully updated!"}),200
+    
+    elif request.method == 'DELETE':
+        referral = Referral.query.filter_by(id=id).first()
+        if not referral:
+            return jsonify({"error": "Referral not found!"}), 404
+        
+        db.session.delete(referral)
+        db.session.commit()
+        return jsonify({"msg": "Referral deleted successfully!"}), 200
 
 
 
