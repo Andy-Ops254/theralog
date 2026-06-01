@@ -17,7 +17,7 @@ def clinician_login():
     #get info from clients side
     email= data['email'].strip().lower()
     password = data['password']
-    name=data['name']
+    name=data.get('name')
     #Query the useer from the db to check if they exist
     clinicians = Clinician.query.filter_by(email=email).first()
     if not clinicians:
@@ -166,7 +166,7 @@ def get_patient(id):
 
     elif request.method == 'PATCH':
         #querying the client
-        patient = Patient.query.filter_by(full_name=full_name).first()
+        patient = Patient.query.filter_by(id=id).first()
 
         if not patient:
             return jsonify({"error": "Patient not found!"}), 404
@@ -297,32 +297,89 @@ def delete_session(id, session_id):
 @api.route('/patient/<int:id>/referral', methods=['POST'])
 @jwt_required()
 def create_referrals(id):
+    if request.method == 'POST':
 
-    patient = Patient.query.filter_by(id=id)
-    if not patient:
-        return jsonify({"error": "Patient not found!"}), 404
-    
-    #get clinician id from jwt token- whoever is logged in
-    identity = get_jwt_identity()
-    clinician_id = identity.get('clinician_id')
-    
-    data = request.get_json()
-    if not data:
-        return jsonify ({"Error": "No data was sent!"}), 404
-    
-    reason = data.get('reason')
-    summary = data.get('summary')
-    sessions_completed= data.get('sessions_completed')
+        patient = Patient.query.filter_by(id=id)
+        if not patient:
+            return jsonify({"error": "Patient not found!"}), 404
 
-    new_referral = Referral(
-        id = id,
-        clinician_id = clinician_id,
-        reason=reason,
-        summary = summary,
-        sessions_completed = sessions_completed
-    )
-    db.session.add(new_referral)
-    db.session.commit()
+        #get clinician id from jwt token- whoever is logged in
+        identity = get_jwt_identity()
+        clinician_id = identity.get('clinician_id')
 
-    return make_response(new_referral.to_dict()), 201
-    
+        data = request.get_json()
+        if not data:
+            return jsonify ({"Error": "No data was sent!"}), 404
+
+        reason = data.get('reason')
+        summary = data.get('summary')
+        sessions_completed= data.get('sessions_completed')
+
+        new_referral = Referral(
+            id = id,
+            clinician_id = clinician_id,
+            reason=reason,
+            summary = summary,
+            sessions_completed = sessions_completed
+        )
+        db.session.add(new_referral)
+        db.session.commit()
+
+        return make_response(new_referral.to_dict()), 201
+
+
+@api.route('/referrals', methods=['GET', 'POST'])
+@jwt_required()
+def clinic_referrals():
+    if request.method == 'GET':
+        referrals = Referral.query.all()
+
+        if not referrals:
+            return jsonify ({"error": "No referrals found!"}), 400
+        
+        return jsonify({
+            "total_referrals" :len(referrals),
+            "referrals": [
+                {
+                    "id": referral.id,
+                    "patient_id": referral.patient_id,
+                    "referred_to": referral.referred_to,
+                    "reason": referral.reason,
+                    "summary": referral.summary,
+                    "sessions_completed": referral.sessions_completed,
+                    "created_at": referral.created_at
+                }
+                for referral in referrals
+            ]
+        }), 200
+
+    elif request.method == 'POST':
+
+        identity = get_jwt_identity()
+        clinician_id = identity.get('clinician_id')
+
+        data = request.get_json()
+
+        patient_id = data.get('patient.id')
+        referred_to = data.get('referred_to')
+        reason = data.get('reason')
+        summary = data.get('summary')
+        sessions_completed = data.get('sessions_completed')
+
+        new_referral = Referral(
+            patient_id= patient_id,
+            clinician_id = clinician_id,
+            referred_to= referred_to,
+            reason = reason,
+            summary = summary,
+            sessions_completed = sessions_completed
+        )
+        db.session.add(new_referral)
+        db.session.commit()
+
+        return jsonify ({"message": "Referral cretated successfully"}), 201 
+
+
+
+
+
