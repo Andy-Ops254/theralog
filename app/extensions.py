@@ -7,4 +7,4 @@ db=SQLAlchemy()
 migrate=Migrate()
 bcrypt=Bcrypt()
 jwt=JWTManager()
-blacklist=set()  # Stores revoked token JTIs
+# blacklist=set()  # Stores revoked token JTIs

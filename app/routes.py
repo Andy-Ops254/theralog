@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, make_response
 from datetime import timedelta
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required, get_jwt
-from .extensions import db, bcrypt, jwt, blacklist
+from .extensions import db, bcrypt, jwt
 from .models import Clinician, Patient, Session, Referral, TokenBlacklist
 
 #blueprint creation for the routes
