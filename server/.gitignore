@@ -1,0 +1,54 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+venv/
+env/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# uv
+.uv/
+
+# Logs
+*.log
+
+# Database (SQLite only)
+*.sqlite3
+*.db
+
+# Flask instance folder
+instance/
+
+# Flask-Migrate / Alembic (optional for dev)
+migrations/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs / Editors
+.vscode/
+.idea/
+
+# Testing / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Type checking
+.mypy_cache/
+
+# Temporary files
+*.swp
+*.swo
+*.tmp
