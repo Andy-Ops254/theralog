@@ -69,7 +69,7 @@ function Landing() {
         <h1 className="font-extrabold leading-tight tracking-tight text-[#12223E] mb-5
             text-4xl sm:text-5xl lg:text-6xl xl:text-7xl">
             Practice Smarter.{' '}
-            <span className="bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent">
                 Care Better.
             </span>
         </h1>

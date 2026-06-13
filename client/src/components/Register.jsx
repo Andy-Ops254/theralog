@@ -53,7 +53,7 @@ function Register() {
               type="submit"
               className="font-semibold text-white bg-[#4A6EA0] text-[14px] mt-4 py-2 px-4 w-full h-12 rounded-2xl hover:bg-[#3A5A8A]"
             >
-              Sign In
+              Sign Up
             </button>
           </form>
 
