@@ -6,11 +6,18 @@ function Register() {
       <div className="p-6 sm:p-8 max-w-md w-full mx-4 rounded-3xl bg-[#F1F5FB] shadow-[16px_16px_30px_rgba(18,34,62,0.08),-16px_-16px_30px_rgba(255,255,255,0.9)]">
         <div className="space-y-2 text-center">
           <h1 className="font-serif font-bold text-4xl leading-6 tracking-wide text-[#12223E]">THERALOG</h1>
-          <p className="font-normal text-xl leading-6 tracking-tight text-[#4A6EA0]">psychology practice management</p>
+          <p className="font-normal text-sm leading-6 tracking-tight text-[#4A6EA0]">psychology practice management</p>
         </div>
 
         <div className="mt-8">
           <form className="flex flex-col space-y-4">
+            <button
+              type="button"
+              onClick={() => window.location.href = '/'}
+              className="inline-flex items-center gap-2 text-[#12223E] font-semibold text-sm hover:text-[#0f1b32] transition-colors"
+            >
+              ← Back Home
+            </button>
             <h2 className="font-semibold text-2xl text-[#12223E] my-6">Welcome!</h2>
 
             <div className="flex flex-col">
