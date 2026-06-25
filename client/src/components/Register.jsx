@@ -43,7 +43,7 @@ function Register() {
         password:''
       })
       // navigate to login
-      Navigate('/login')
+      navigate('/login')
     })
     .catch(err => {
       console.error('Failed attwmpt!', err.message)
@@ -119,7 +119,10 @@ function Register() {
 
           <p className="font-light tracking-wider text-base text-center mt-6">
             Already have an account?
-            <button type="button" className="font-medium hover:text-blue-500 px-2 cursor-pointer underline">
+            <button 
+            type="button"
+            onClick={() => navigate('/signin')}
+            className="font-medium hover:text-blue-500 px-2 cursor-pointer underline">
               SignIn here
             </button>
           </p>

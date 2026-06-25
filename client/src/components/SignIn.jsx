@@ -6,7 +6,7 @@ function SignIn() {
 
     const navigate = useNavigate()
 
-    const [sigin, setSignin]= useState({
+    const [signin, setSignin]= useState({
         name:"",
         email:"",
         password:""
@@ -27,7 +27,7 @@ function SignIn() {
                 "Content-Type":"application/json",
                 "Authorization":`Bearer ${token}`
             },
-            body:JSON.stringify(singinData)
+            body:JSON.stringify(signinData)
         })
         .then(response => {
             console.log(response.status)
@@ -120,7 +120,10 @@ function SignIn() {
 
                 <p className="font-light tracking-wider text-base text-center mt-6">
                 Don't have an account?
-                <button type="button" className="font-medium hover:text-blue-500 px-2 cursor-pointer underline">
+                <button
+                type="button" 
+                onClick={() => navigate('/register')}
+                className="font-medium hover:text-blue-500 px-2 cursor-pointer underline">
                     Register here
                 </button>
                 </p>

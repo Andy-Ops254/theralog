@@ -2,14 +2,16 @@ import React from 'react'
 import Register from './Register'
 import Landing from './Landing'
 import SignIn from './SignIn'
+import { Routes, Route, Navigate } from 'react-router-dom'
 
 function App() {
   return (
-    <div>
-      <Landing />
-      <Register />
-      <SignIn />
-    </div>
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/signin" element={<SignIn />} />
+      <Route path="*" element={<Navigate replace to="/" />} />
+    </Routes>
   )
 }
 

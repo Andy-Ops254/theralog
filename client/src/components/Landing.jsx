@@ -1,5 +1,6 @@
 import React from 'react'
 import { Stethoscope, ArrowUpRight, CalendarDays, FileText, Users, BarChart2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 const neuCard = `
     bg-[#F1F5FE]
@@ -34,6 +35,10 @@ const features = [
 ]
 
 function Landing() {
+
+    const navigate=useNavigate()
+
+    
   return (
     <div className="min-h-screen bg-[#EEF2FB] font-sans">
 
@@ -44,6 +49,8 @@ function Landing() {
             <span className="font-bold text-[#12223E] text-lg tracking-wide">theralog</span>
         </div>
         <button
+            type="button"
+            onClick={() => navigate('/signin')}
             className="text-sm font-semibold text-[#4A6EA0] border border-[#4A6EA0]/30 px-5 py-2.5 rounded-xl
             shadow-[4px_4px_10px_rgba(18,34,62,0.08),-4px_-4px_10px_rgba(255,255,255,0.85)]
             hover:shadow-[6px_6px_14px_rgba(18,34,62,0.12),-6px_-6px_14px_rgba(255,255,255,0.9)]
@@ -98,6 +105,7 @@ function Landing() {
             </div>
 
             <button
+            onClick={() => navigate('/signin')}
             className="w-full bg-[#12223E] px-6 py-3.5 flex items-center justify-center gap-2
                 font-semibold text-white text-sm rounded-xl
                 shadow-[4px_4px_14px_rgba(18,34,62,0.3),-2px_-2px_8px_rgba(255,255,255,0.6)]
