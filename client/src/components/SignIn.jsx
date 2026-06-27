@@ -56,7 +56,7 @@ function SignIn() {
                 email:"",
                 password:""
             })
-            navigate('/layout')
+            navigate('/dashboard')
         })
         .catch(error => {
             console.error('SignIn Failed', error.message)
