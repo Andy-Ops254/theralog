@@ -44,6 +44,12 @@ function SignIn() {
             const accessToken = Data?.token || Data?.access_token || Data?.accessToken
             if (accessToken) {
                 localStorage.setItem('token', accessToken)
+
+             // save the clinician object too
+            const clinician = Data?.clinician || Data?.user || Data?.data
+            if (clinician) {
+                localStorage.setItem('clinician', JSON.stringify(clinician))
+            }
             }
             setSignin ({
                 name:"", 
