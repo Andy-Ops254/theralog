@@ -30,11 +30,11 @@ def clinician_login():
     #Query the useer from the db to check if they exist
     clinicians = Clinician.query.filter_by(email=email).first()
     if not clinicians:
-        return jsonify({'error': "Clinician doesn't exist!"}), 401
+        return jsonify({'error': "Clinician doesn't exist!"}), 404
     
     # validate password
     if not bcrypt.check_password_hash(clinicians.password_hash, password):
-        return jsonify({'error': 'Invalid Password'}), 401
+        return jsonify({'error': 'Invalid Password'}), 404
     
     # generate access tokens
     access_token = create_access_token(
