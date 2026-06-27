@@ -13,20 +13,18 @@ function Register() {
   })
 
   function handleChange (e) {
-    e.preventDefault()
-    const{name, value}=e.target
-    setRegister({...register,[name]:value})
+    const { name, value } = e.target
+    setRegister({ ...register, [name]: value })
   }
 
-  const registerData = {...register}
-
-  function handleSubmit(){
-    fetch (' http://127.0.0.1:5000', {
-      method:'POST',
-      header: {
-        "Content-Type":"application/json",
+  function handleSubmit(e) {
+    e.preventDefault()
+    fetch('http://127.0.0.1:5000/register', {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
       },
-      body:JSON.stringify(registerData)
+      body: JSON.stringify(register)
     })
     .then(response => {
       console.log(response.status)
@@ -42,8 +40,8 @@ function Register() {
         email:'',
         password:''
       })
-      // navigate to login
-      navigate('/login')
+      // navigate to sign in
+      navigate('/signin')
     })
     .catch(err => {
       console.error('Failed attwmpt!', err.message)
@@ -59,7 +57,7 @@ function Register() {
         </div>
 
         <div className="mt-8">
-          <form className="flex flex-col space-y-4">
+          <form className="flex flex-col space-y-4" onSubmit={handleSubmit}>
             <button
               type="button"
               onClick={() => window.location.href = '/'}
@@ -76,6 +74,7 @@ function Register() {
                 name="name"
                 type="text"
                 placeholder="Enter your name"
+                value={register.name}
                 required
                 onChange={handleChange}
                 className="w-full h-12 px-4 rounded-lg border border-gray-300 bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -89,6 +88,7 @@ function Register() {
                 name="email"
                 type="email"
                 placeholder="Email"
+                value={register.email}
                 required
                 onChange={handleChange}
                 className="w-full h-12 px-4 rounded-lg border border-gray-300 bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -102,6 +102,7 @@ function Register() {
                 name="password"
                 type="password"
                 placeholder="Password"
+                value={register.password}
                 required
                 onChange={handleChange}
                 className="w-full h-12 px-4 rounded-lg border border-gray-300 bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -110,7 +111,6 @@ function Register() {
 
             <button
               type="submit"
-              onSubmit={handleSubmit}
               className="font-semibold text-white bg-[#4A6EA0] text-[14px] mt-4 py-2 px-4 w-full h-12 rounded-2xl hover:bg-[#3A5A8A]"
             >
               Sign Up

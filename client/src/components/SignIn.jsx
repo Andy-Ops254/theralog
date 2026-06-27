@@ -15,19 +15,22 @@ function SignIn() {
     function handleChange(e) {
         const{name,value}=e.target
         setSignin({...signin,[name]:value})
-
     }
-    const singinData = {...signin}
 
     function handleSubmit(e) {
         e.preventDefault()
+        const token = localStorage.getItem('token')
+        const headers = {
+            "Content-Type":"application/json"
+        }
+        if (token) {
+            headers.Authorization = `Bearer ${token}`
+        }
+
         fetch('http://127.0.0.1:5000/login', {
             method: "POST",
-            headers: {
-                "Content-Type":"application/json",
-                "Authorization":`Bearer ${token}`
-            },
-            body:JSON.stringify(signinData)
+            headers,
+            body:JSON.stringify(signin)
         })
         .then(response => {
             console.log(response.status)
@@ -38,12 +41,16 @@ function SignIn() {
         })
         .then(Data => {
             console.log(Data)
+            const accessToken = Data?.token || Data?.access_token || Data?.accessToken
+            if (accessToken) {
+                localStorage.setItem('token', accessToken)
+            }
             setSignin ({
                 name:"", 
                 email:"",
                 password:""
             })
-            navigate()
+            navigate('/layout')
         })
         .catch(error => {
             console.error('SignIn Failed', error.message)
@@ -60,7 +67,7 @@ function SignIn() {
             </div>
 
             <div className="mt-8">
-                <form className="flex flex-col space-y-4">
+                <form className="flex flex-col space-y-4" onSubmit={handleSubmit}>
                 <button
                     type="button"
                     onClick={() => window.location.href = '/'}
@@ -77,6 +84,7 @@ function SignIn() {
                     name="name"
                     type="text"
                     placeholder="Enter your name"
+                    value={signin.name}
                     required
                     onChange={handleChange}
                     className="w-full h-12 px-4 rounded-lg border border-gray-300 bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -90,6 +98,7 @@ function SignIn() {
                     name="email"
                     type="email"
                     placeholder="Email"
+                    value={signin.email}
                     required
                     onChange={handleChange}
                     className="w-full h-12 px-4 rounded-lg border border-gray-300 bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -103,6 +112,7 @@ function SignIn() {
                     name="password"
                     type="password"
                     placeholder="Password"
+                    value={signin.password}
                     required
                     onChange={handleChange}
                     className="w-full h-12 px-4 rounded-lg border border-gray-300 bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -111,7 +121,6 @@ function SignIn() {
 
                 <button
                     type="submit"
-                    onSubmit={handleSubmit}
                     className="font-semibold text-white bg-[#4A6EA0] text-[14px] mt-4 py-2 px-4 w-full h-12 rounded-2xl hover:bg-[#3A5A8A]"
                 >
                     Sign In

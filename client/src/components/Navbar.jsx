@@ -3,7 +3,7 @@ import {Stethoscope, List, BellDot, LogOut, Moon} from 'lucide-react'
 
 function Navbar() {
   return (
-    <nav className="fixed inset-x-4 top-4 z-50 flex min-w-[calc(100%-2rem)] flex-col gap-4 rounded-[2rem] border border-slate-200/30 bg-white/15 px-4 py-3 shadow-2xl shadow-slate-950/20 backdrop-blur-xl text-slate-900 backdrop-saturate-150 sm:inset-x-6 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
+    <nav className="fixed inset-x-4 top-4 z-50 flex min-w-[calc(100%-2rem)] flex-col gap-4 rounded-[2rem] border border-white/20  bg-white/10 px-4 py-3 shadow-2xl shadow-slate-950/10 backdrop-blur-md text-slate-900 backdrop-saturate-200 sm:inset-x-6 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <button
           type="button"
