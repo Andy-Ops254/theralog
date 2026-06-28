@@ -438,3 +438,19 @@ def update_delete(id):
 
 
 
+@api.route('/dashboard/stats', methods=['GET'])
+@jwt_required()
+def dashStats():
+    identity = get_jwt_identity()
+    clinician_id = identity.get('clinician_id') if isinstance(identity, dict) else None
+
+    if clinician_id is None:
+        return jsonify({"error": "Clinician identity not found in token"}), 400
+
+    return jsonify({
+        "sessions": Session.query.filter_by(clinician_id=clinician_id).count(),
+        "referrals": Referral.query.filter_by(clinician_id=clinician_id).count(),
+        "patients": Patient.query.filter_by(clinician_id=clinician_id).count()
+    }), 200
+
+
