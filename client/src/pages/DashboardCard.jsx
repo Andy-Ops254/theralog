@@ -11,8 +11,10 @@ function DashboardCard({ title, children }) {
         </div>
 
         <div className="mt-auto text-3xl font-semibold tracking-tight text-[#12223E]">
+            
             {children}
         </div>
+
     </div>
   )
 }
