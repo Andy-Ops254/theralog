@@ -1,7 +1,11 @@
 import React from 'react'
 import { Stethoscope, List, BellDot, LogOut, Moon } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 function Navbar({ onToggleSidebar }) {
+
+  const navigate = useNavigate()
+
   let username = 'Clinician'
 
   try {
@@ -20,7 +24,7 @@ function Navbar({ onToggleSidebar }) {
   function handleLogout (){
     localStorage.removeItem('clinician')
     localStorage.removeItem('token')
-    window.location.href='/'
+    navigate('/')
   }
 
   return (

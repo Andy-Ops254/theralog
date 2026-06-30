@@ -9,6 +9,7 @@ function Sidebar({ isExpanded }) {
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('clinician')
+    // console.log('umbwa')
     navigate('/signin')
   }
 

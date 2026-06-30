@@ -60,7 +60,7 @@ function Register() {
           <form className="flex flex-col space-y-4" onSubmit={handleSubmit}>
             <button
               type="button"
-              onClick={() => window.location.href = '/'}
+              onClick={() => navigate('/')}
               className="inline-flex items-center gap-2 text-[#12223E] font-semibold text-sm hover:text-[#0f1b32] transition-colors"
             >
               ← Back Home

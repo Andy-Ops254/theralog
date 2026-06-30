@@ -33,7 +33,7 @@ function App() {
         <Route path="/patients" element={<Patients />} />
         <Route path="/referrals" element={<Referrals />} />
         <Route path="/settings" element={<Settings />} />
-        <Route index element={<Navigate replace to="/dashboard" />} />
+        {/* <Route index element={<Navigate replace to="/dashboard" />} /> */}
       </Route>
 
       <Route path="*" element={<Navigate replace to="/" />} />
