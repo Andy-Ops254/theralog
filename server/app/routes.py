@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, make_response
-from datetime import timedelta
+from datetime import timedelta, datetime
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required, get_jwt
 from .extensions import db, bcrypt, jwt
 from .models import Clinician, Patient, Session, Referral, TokenBlacklist
@@ -453,4 +453,23 @@ def dashStats():
         "patients": Patient.query.filter_by(clinician_id=clinician_id).count()
     }), 200
 
+@api.route('/weekly/sessions', methods=['GET'])
+@jwt_required()
+def get_weekly_sessions():
+    identity = get_jwt_identity()
+    clinician_id = identity.get('clinician_id')
 
+    today = datetime.utcnow().date()
+    start_of_week = today - timedelta(days=today.weekday())
+    end_of_week = start_of_week +timedelta(days=6)
+
+    sessions= Session.query.filter(
+        Session.clinician_id==clinician_id,
+        Session.session_date >= start_of_week,
+        Session.session_date <= end_of_week
+    ).all()
+
+    if not sessions:
+        return jsonify({"error": "No Sessions were found"}), 204
+
+    return jsonify([s.to_dict() for s in sessions])
