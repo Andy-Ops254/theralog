@@ -37,13 +37,13 @@ function Dashboard() {
         ])
         .then(([res1,res2]) => Promise.all([res1.json(), res2.json()]))
         .then(([stats, sessions]) => {
-            setDashStats(data),
-            setTableData(data)
+            setDashStats(stats),
+            setTableData(sessions)
         })
     }, [])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
         <div className="rounded-4xl border border-white/40 bg-white/50 px-6 py-5 shadow-[12px_12px_30px_rgba(15,23,42,0.08),-12px_-12px_30px_rgba(255,255,255,0.8)] backdrop-blur-sm">
             <h1 className="text-2xl font-semibold text-[#12223E]">
                 👋 Welcome, {username}
@@ -67,7 +67,7 @@ function Dashboard() {
 
 
         <div className="overflow-hidden rounded-4xl border border-white/40 bg-white/60 shadow-[12px_12px_30px_rgba(15,23,42,0.08),-12px_-12px_30px_rgba(255,255,255,0.8)] backdrop-blur-sm">
-            <div className="border-b border-[#12223E]/10 bg-[#12223E]/5 px-4 py-4 sm:px-6">
+            <div className="border-b border-[#12223E]/10 bg-[#12223E]/5 px-4 py-4 sm:px-6 ">
                 <h2 className="text-lg font-semibold text-[#12223E]">This Week's Sessions</h2>
                 <p className="mt-1 text-sm text-[#4A6EA0]">A quick view of your weekly clinical activity.</p>
             </div>
@@ -86,7 +86,7 @@ function Dashboard() {
                     {/* checks if the tabledata has any data if it does it maps if not it gives the no sessions yet */}
                         {tableRows.length > 0 ? (
                             tableRows.map((row, index) => (
-                                <tr key={`${row.patient_id || row.patient || 'row'}-${index}`} className="transition hover:bg-cyan-50/60">
+                                <tr key={`${row.id || 'row'}-${index}`} className="transition hover:bg-cyan-50/60">
                                     <td className="px-4 py-3 sm:px-6">{row.patient_name || row.patient || '—'}</td>
                                     <td className="px-4 py-3 sm:px-6">{row.clinician_name || row.clinician || username}</td>
                                     <td className="px-4 py-3 sm:px-6">{row.session_date || row.date || '—'}</td>

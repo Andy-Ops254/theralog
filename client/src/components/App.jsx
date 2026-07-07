@@ -6,7 +6,7 @@ import Layout from './Layout'
 import ProtectedRoute from './ProtectedRoute'
 import Dashboard from '../pages/Dashboard'
 import Sessions from '../pages/Sessions'
-import Psychologists from '../pages/Psychologists'
+// import Psychologists from '../pages/Psychologists'
 import Patients from '../pages/Patients'
 import Referrals from '../pages/Referrals'
 import Settings from '../pages/Settings'
@@ -29,7 +29,7 @@ function App() {
       >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/sessions" element={<Sessions />} />
-        <Route path="/psychologists" element={<Psychologists />} />
+        {/* <Route path="/psychologists" element={<Psychologists />} /> */}
         <Route path="/patients" element={<Patients />} />
         <Route path="/referrals" element={<Referrals />} />
         <Route path="/settings" element={<Settings />} />

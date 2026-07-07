@@ -51,7 +51,7 @@ function Navbar({ onToggleSidebar }) {
       </div>
 
       <div className="flex items-center gap-4">
-        <span className="max-w-[120px] truncate text-sm font-semibold text-[#12223E] whitespace-nowrap">
+        <span className="max-w-30 truncate text-sm font-semibold text-[#12223E] whitespace-nowrap">
           Welcome, {username}
         </span>
 

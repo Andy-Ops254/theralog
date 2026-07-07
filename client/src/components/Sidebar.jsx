@@ -23,9 +23,9 @@ function Sidebar({ isExpanded }) {
 
         <nav className="flex flex-col gap-2">
             <SidebarLink icon={<HomeIcon />} label="Dashboard" href="/dashboard" isExpanded={isExpanded} />
-            <SidebarLink icon={<CalendarIcon />} label="Sessions" href="/sessions" isExpanded={isExpanded} />
-            <SidebarLink icon={<Users />} label="Psychologists" href="/psychologists" isExpanded={isExpanded} />
             <SidebarLink icon={<UserIcon />} label="Patients" href="/patients" isExpanded={isExpanded} />
+            <SidebarLink icon={<CalendarIcon />} label="Sessions" href="/sessions" isExpanded={isExpanded} />
+            {/* <SidebarLink icon={<Users />} label="Psychologists" href="/psychologists" isExpanded={isExpanded} /> */}
             <SidebarLink icon={<ChartBarIcon />} label="Referrals" href="/referrals" isExpanded={isExpanded} />
             <SidebarLink icon={<CogIcon />} label="Settings" href="/settings" isExpanded={isExpanded} />
         </nav>
