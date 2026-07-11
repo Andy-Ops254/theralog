@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import AddClientForm from '../components/AddClientForm'
 
 function Patients() {
   const [tableRows, setTableRows] = useState([])
@@ -9,6 +10,10 @@ function Patients() {
       .toLowerCase()
       .includes(search.toLowerCase())
   )
+
+    function handleClientAdded(newClient) {
+      setTableRows (prev => [...prev,newClient])
+    }
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
@@ -34,7 +39,7 @@ function Patients() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search clients by name..."
-          className="w-full bg-transparent text-sm text-[#12223E] placeholder-[#4A6EA0] outline-none"
+          className="w-80 sm:64 bg-transparent text-sm text-[#12223E] placeholder-[#4A6EA0] outline-none"
         />
       </div>
 
@@ -98,6 +103,8 @@ function Patients() {
           </tbody>
         </table>
       </div>
+
+      <AddClientForm onClientAdded={handleClientAdded}/>
 
     </div>
   )

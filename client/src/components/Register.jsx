@@ -44,7 +44,7 @@ function Register() {
       navigate('/signin')
     })
     .catch(err => {
-      console.error('Failed attwmpt!', err.message)
+      console.error('Failed attempt!', err.message)
     })
   }
 
