@@ -1,6 +1,6 @@
 from .extensions import db, bcrypt
-from sqlalchemy_serializer import SerializerMixin
-from sqlalchemy.orm import validates
+from sqlalchemy_serializer import SerializerMixin # type: ignore
+from sqlalchemy.orm import validates # type: ignore
 
 class Clinician (db.Model, SerializerMixin):
     __tablename__='clinicians'

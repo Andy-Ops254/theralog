@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, make_response
 from datetime import timedelta, datetime
-from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required, get_jwt
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required, get_jwt # type: ignore
 from .extensions import db, bcrypt, jwt
 from .models import Clinician, Patient, Session, Referral, TokenBlacklist
 
@@ -136,12 +136,18 @@ def new_patient():
         
         return make_response(patient_dict, 201)
 
-
+# i want to query patients based on the clinician they have
 @api.route("/patients", methods=['GET'])
+@jwt_required()
 def read_patients():
+
+    identity=get_jwt_identity()
+    Clinician_id = identity.get('clinician_id')
     
     #database querying 
-    patients = Patient.query.all()
+    patients = Patient.query.filter(
+        Patient.clinician_id==Clinician_id
+    ).all()
 
     if not patients:
         return jsonify ({"error": "Patients not found!"}), 404
