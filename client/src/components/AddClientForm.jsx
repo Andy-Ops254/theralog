@@ -1,7 +1,7 @@
 import React, { useState , useEffect} from 'react'
 import {jwtDecode} from 'jwt-decode'
 
-function AddClientForm({onCloseModal, isModalOpen}) {
+function AddClientForm({onCloseModal, isModalOpen, onClientAdded}) {
     const[newClient, setNewClient]=useState({
         full_name: '',
         date_of_birth:'',
@@ -48,6 +48,7 @@ function AddClientForm({onCloseModal, isModalOpen}) {
                 date_of_admission:''
             })
             onCloseModal()
+            if (onClientAdded) onClientAdded(data)
         })
         .catch(err => {
             console.error("Failed !", err.message)
@@ -144,6 +145,7 @@ function AddClientForm({onCloseModal, isModalOpen}) {
                         <input
                         id='sex-male'
                         type="radio"
+                        onChange={handleChange}
                         name='sex'
                         value="male"
                         className='accent-[#12223E]'
@@ -156,6 +158,7 @@ function AddClientForm({onCloseModal, isModalOpen}) {
                         id='sex-other'
                         type="radio"
                         name='sex'
+                        onChange={handleChange}
                         value="other"
                         className='accent-[#12223E]'
                         /> other
@@ -178,7 +181,7 @@ function AddClientForm({onCloseModal, isModalOpen}) {
                 type="text"
                 name='condition'
                 placeholder='e.g Schizophrenia'
-                value={newClient.condtion}
+                value={newClient.condition}
                 onChange={handleChange}
                 className='mt-2 rounded-2xl bg-white/60 border border-white/60 px-4 py-3
                         text-[#12223E] placeholder:text-slate-400

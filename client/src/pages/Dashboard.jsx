@@ -28,18 +28,26 @@ function Dashboard() {
 
         // parallel fetching for both dashstats and weekly sessions for a particular clinician
         Promise.all([
-        fetch ('http://127.0.0.1:5000/dashboard/stats', {
-            headers: {Authorization: `Bearer ${token}`}
-        }),
-        fetch('http://127.0.0.1:5000/weekly/sessions', {
-            headers: {Authorization: `Bearer ${token}`}
-        })
+            fetch('http://127.0.0.1:5000/dashboard/stats', {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
+            fetch('http://127.0.0.1:5000/weekly/sessions', {
+                headers: { Authorization: `Bearer ${token}` }
+            })
         ])
-        .then(([res1,res2]) => Promise.all([res1.json(), res2.json()]))
-        .then(([stats, sessions]) => {
-            setDashStats(stats),
-            setTableData(sessions)
-        })
+            .then(([res1, res2]) =>
+            Promise.all([
+                res1.json(),
+                res2.status === 204 ? Promise.resolve([]) : res2.json()
+            ])
+            )
+            .then(([stats, sessions]) => {
+            setDashStats(stats)
+            setTableRows(sessions)
+            })
+            .catch(err => {
+            console.error('Dashboard fetch failed:', err)
+            })
     }, [])
 
   return (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import AddClientForm from '../components/AddClientForm'
 import { Search } from 'lucide-react';
 
@@ -9,7 +9,7 @@ function Patients() {
   const [isModalOpen, setIsModalOpen]=useState(false) 
 
   const filteredRows = tableRows.filter(row =>
-    (row.patient?.full_name || row.patient_name || '')
+    (row.full_name || row.patient?.full_name || row.patient_name || '')
       .toLowerCase()
       .includes(search.toLowerCase())
   )
@@ -26,6 +26,30 @@ function Patients() {
       setIsModalOpen(false)
     }
 
+
+    useEffect(() => {
+      const token = localStorage.getItem('token')
+        if (!token) {
+            return ("Not Authorized!")
+        }
+      fetch('http://127.0.0.1:5000/patients', {
+        headers : {
+          Authorization : `Bearer ${token}`
+        }
+      })
+      .then((res) => {
+          console.log(res.status)
+          if(!res.ok) {
+            throw new Error('Failed to fetch!')
+          }
+          return res.json()
+        })
+        .then((data) => {
+          console.log(data)
+          setTableRows(data?.patients || [])
+        })
+        .catch(err => console.error(err))
+    },[])
   return (
     <div className="p-4 sm:p-6 space-y-6">
 
@@ -79,20 +103,20 @@ function Patients() {
                   className="transition hover:bg-cyan-50/60"
                 >
                   <td className="px-4 py-3 sm:px-6 font-medium">
-                    {row.patient?.full_name || row.patient_name || '—'}
+                    {row.full_name || row.patient?.full_name || row.patient_name || '—'}
                   </td>
                   <td className="px-4 py-3 sm:px-6">
-                    {row.patient?.sex || row.sex || '—'}
+                    {row.sex || row.patient?.sex || '—'}
                   </td>
                   <td className="px-4 py-3 sm:px-6">
-                    {row.patient?.date_of_admission || row.date_of_admission || '—'}
+                    {row.date_of_admission || row.patient?.date_of_admission || '—'}
                   </td>
                   <td className="px-4 py-3 sm:px-6">
-                    {row.patient?.condition || row.condition || '—'}
+                    {row.condition || row.patient?.condition || '—'}
                   </td>
                   <td className="px-4 py-3 sm:px-6">
                     <span className="inline-flex rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-700">
-                      {row.patient?.status || row.status || 'Pending'}
+                      {row.status || row.patient?.status || 'Pending'}
                     </span>
                   </td>
                 </tr>
@@ -119,7 +143,7 @@ function Patients() {
         </table>
       </div>
 
-      {isModalOpen &&<AddClientForm onClientAdded={handleClientAdded}  onCloseModal={handleCloseModal}  isModalOpen={handleOpenModal}/>}
+      {isModalOpen &&<AddClientForm onClientAdded={handleClientAdded}  onCloseModal={handleCloseModal}  isModalOpen={isModalOpen}/>}
 
     </div>
   )
