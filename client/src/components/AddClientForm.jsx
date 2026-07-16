@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState , useEffect} from 'react'
+import {jwtDecode} from 'jwt-decode'
 
-function AddClientForm() {
+function AddClientForm({onCloseModal, isModalOpen}) {
     const[newClient, setNewClient]=useState({
-        name: '',
+        full_name: '',
         date_of_birth:'',
         sex: '',
         condition:"",
@@ -18,10 +19,10 @@ function AddClientForm() {
 
     function handleSubmit(e){
         e.preventDefault()
-        fetch('http://127.0.0.1:5000', {
+        fetch('http://127.0.0.1:5000/new_patient', {
             method: 'POST',
             headers:{
-                "Content-Type": "application.json",
+                "Content-Type": "application/json",
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(newClient)
@@ -38,7 +39,7 @@ function AddClientForm() {
         .then (data => {
             console.log(data)
             setNewClient({
-                name: '',
+                full_name: '',
                 date_of_birth:'',
                 sex: '',
                 condition:"",
@@ -46,11 +47,31 @@ function AddClientForm() {
                 status: '',
                 date_of_admission:''
             })
+            onCloseModal()
         })
         .catch(err => {
             console.error("Failed !", err.message)
         })
+
     }
+
+    function handleCancel(){
+        // console.log('finya')
+        onCloseModal()
+    }
+
+    // inside your component
+    const token = localStorage.getItem('token');
+    const user = token ? jwtDecode(token) : null;
+
+    useEffect(() => {
+    if (isModalOpen) {
+        setNewClient(prev => ({
+            ...prev,
+            assigned_to: user?.name || '',
+        }));
+    }
+}, [isModalOpen]);
   return (
     <div className='rounded-[28px] border border-white/50 bg-white/45 backdrop-blur-md shadow-[16px_16px_40px_rgba(15,23,42,0.10),-16px_-16px_40px_rgba(255,255,255,0.85)] p-8'>
         <div>
@@ -68,13 +89,13 @@ function AddClientForm() {
             </h2>
 
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
-                <label htmlFor="Name" className='flex flex-col text-sm text-[#12223E] font-medium'>
+                <label htmlFor="full_name" className='flex flex-col text-sm text-[#12223E] font-medium'>
                     Full Name
                 <input
-                id='name'
+                id='full_name'
                 type="text"
-                name='name'
-                value={newClient.name}
+                name='full_name'
+                value={newClient.full_name}
                 onChange={handleChange}
                 placeholder='e.g Andrew Rimongi'
                 className='mt-2 rounded-2xl bg-white/60 border border-white/60 px-4 py-3
@@ -174,9 +195,9 @@ function AddClientForm() {
                 name='assigned_to'
                 placeholder='e.g Dr. Andrew Rimongi'
                 value={newClient.assigned_to}
-                onChange={handleChange}
+                readOnly
                 className='mt-2 rounded-2xl bg-white/60 border border-white/60 px-4 py-3
-                        text-[#12223E] placeholder:text-slate-400
+                        text-[#12223E] placeholder:text-slate-400 cursor-not-allowed
                         shadow-[inset_6px_6px_14px_rgba(15,23,42,0.08),inset_-6px_-6px_14px_rgba(255,255,255,0.8)]
                         focus:outline-none focus:ring-2 focus:ring-[#12223E]/20 transition'
                 />
@@ -255,7 +276,9 @@ function AddClientForm() {
                     Admit client
                 </button>
 
-                <button type='delete'
+                <button 
+                type='button'
+                onClick={handleCancel}
                 className='rounded-2xl px-6 py-3 font-medium text-slate-500 bg-white/40 border border-white/50
                 shadow-[6px_6px_16px_rgba(15,23,42,0.08),-6px_-6px_16px_rgba(255,255,255,0.8)]
                 active:shadow-[inset_4px_4px_10px_rgba(15,23,42,0.12),inset_-4px_-4px_10px_rgba(255,255,255,0.75)]

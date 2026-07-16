@@ -1,9 +1,12 @@
 import React, { useState } from 'react'
 import AddClientForm from '../components/AddClientForm'
+import { Search } from 'lucide-react';
+
 
 function Patients() {
   const [tableRows, setTableRows] = useState([])
   const [search, setSearch] = useState('')
+  const [isModalOpen, setIsModalOpen]=useState(false) 
 
   const filteredRows = tableRows.filter(row =>
     (row.patient?.full_name || row.patient_name || '')
@@ -13,6 +16,14 @@ function Patients() {
 
     function handleClientAdded(newClient) {
       setTableRows (prev => [...prev,newClient])
+    }
+
+    function handleOpenModal(){
+      setIsModalOpen(true)
+    }
+
+    function handleCloseModal(){
+      setIsModalOpen(false)
     }
 
   return (
@@ -26,14 +37,18 @@ function Patients() {
             Manage your clinic's client records
           </p>
         </div>
-        <button className="flex items-center gap-2 rounded-2xl bg-[#12223E] px-4 py-2 font-semibold text-white shadow-[6px_6px_12px_rgba(18,34,62,0.2),-6px_-6px_12px_rgba(255,255,255,0.12)] transition-transform duration-200 hover:scale-105 cursor-pointer whitespace-nowrap">
+        <button 
+        className="flex items-center gap-2 rounded-2xl bg-[#12223E] px-4 py-2 font-semibold text-white shadow-[6px_6px_12px_rgba(18,34,62,0.2),-6px_-6px_12px_rgba(255,255,255,0.12)] transition-transform duration-200 hover:scale-105 cursor-pointer whitespace-nowrap"
+        onClick={handleOpenModal}
+        >
           <span className="text-2xl leading-none">+</span>
           <span>Add New Client</span>
         </button>
       </div>
 
       {/* ── Search Bar ── */}
-      <div className="rounded-3xl border border-white/40 bg-white/50 px-4 py-3 shadow-[12px_12px_30px_rgba(15,23,42,0.08),-12px_-12px_30px_rgba(255,255,255,0.8)] backdrop-blur-sm">
+      <div className="rounded-3xl border border-white/40 bg-white/50 px-4 py-3 shadow-[12px_12px_30px_rgba(15,23,42,0.08),-12px_-12px_30px_rgba(255,255,255,0.8)] backdrop-blur-sm inline-flex gap-4">
+        < Search  className='w-4 h-4'/>
         <input
           type="text"
           value={search}
@@ -104,7 +119,7 @@ function Patients() {
         </table>
       </div>
 
-      <AddClientForm onClientAdded={handleClientAdded}/>
+      {isModalOpen &&<AddClientForm onClientAdded={handleClientAdded}  onCloseModal={handleCloseModal}  isModalOpen={handleOpenModal}/>}
 
     </div>
   )
