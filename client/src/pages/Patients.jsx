@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import AddClientForm from '../components/AddClientForm'
 import { Search } from 'lucide-react';
-
+import {useNavigate} from 'react-router-dom'
 
 function Patients() {
   const [tableRows, setTableRows] = useState([])
@@ -50,6 +50,8 @@ function Patients() {
         })
         .catch(err => console.error(err))
     },[])
+
+    const navigate = useNavigate()
   return (
     <div className="p-4 sm:p-6 space-y-6">
 
@@ -100,7 +102,8 @@ function Patients() {
               filteredRows.map((row, index) => (
                 <tr
                   key={`${row.id || 'row'}-${index}`}
-                  className="transition hover:bg-cyan-50/60"
+                  className="transition hover:bg-cyan-50/60 hover:scale-102 duration-200"
+                  onClick={() => navigate('/patients/${patient.id}')}
                 >
                   <td className="px-4 py-3 sm:px-6 font-medium">
                     {row.full_name || row.patient?.full_name || row.patient_name || '—'}

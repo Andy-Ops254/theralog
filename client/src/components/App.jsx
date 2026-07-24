@@ -8,6 +8,7 @@ import Dashboard from '../pages/Dashboard'
 import Sessions from '../pages/Sessions'
 // import Psychologists from '../pages/Psychologists'
 import Patients from '../pages/Patients'
+import PatientProfile from '../pages/PatientProfile'
 import Referrals from '../pages/Referrals'
 import Settings from '../pages/Settings'
 import { Routes, Route, Navigate } from 'react-router-dom'
@@ -31,6 +32,7 @@ function App() {
         <Route path="/sessions" element={<Sessions />} />
         {/* <Route path="/psychologists" element={<Psychologists />} /> */}
         <Route path="/patients" element={<Patients />} />
+        <Route path="/patients/:id" element={<PatientProfile />} />
         <Route path="/referrals" element={<Referrals />} />
         <Route path="/settings" element={<Settings />} />
         {/* <Route index element={<Navigate replace to="/dashboard" />} /> */}
