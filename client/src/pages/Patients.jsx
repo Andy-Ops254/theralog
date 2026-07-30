@@ -99,31 +99,34 @@ function Patients() {
 
           <tbody className="divide-y divide-[#12223E]/10 bg-white/40">
             {filteredRows.length > 0 ? (
-              filteredRows.map((row, index) => (
-                <tr
-                  key={`${row.id || 'row'}-${index}`}
-                  className="transition hover:bg-cyan-50/60 hover:scale-102 duration-200"
-                  onClick={() => navigate('/patients/${patient.id}')}
-                >
-                  <td className="px-4 py-3 sm:px-6 font-medium">
-                    {row.full_name || row.patient?.full_name || row.patient_name || '—'}
-                  </td>
-                  <td className="px-4 py-3 sm:px-6">
-                    {row.sex || row.patient?.sex || '—'}
-                  </td>
-                  <td className="px-4 py-3 sm:px-6">
-                    {row.date_of_admission || row.patient?.date_of_admission || '—'}
-                  </td>
-                  <td className="px-4 py-3 sm:px-6">
-                    {row.condition || row.patient?.condition || '—'}
-                  </td>
-                  <td className="px-4 py-3 sm:px-6">
-                    <span className="inline-flex rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-700">
-                      {row.status || row.patient?.status || 'Pending'}
-                    </span>
-                  </td>
-                </tr>
-              ))
+              filteredRows.map((row, index) => {
+                // console.log('row details:', row)
+                return (
+                  <tr
+                    key={`${row.id || 'row'}-${index}`}
+                    className="transition hover:bg-cyan-50/60 hover:scale-102 duration-200"
+                    onClick={() => navigate(`/patients/${row.id}`)}
+                  >
+                    <td className="px-4 py-3 sm:px-6 font-medium">
+                      {row.full_name || row.patient?.full_name || row.patient_name || '—'}
+                    </td>
+                    <td className="px-4 py-3 sm:px-6">
+                      {row.sex || row.patient?.sex || '—'}
+                    </td>
+                    <td className="px-4 py-3 sm:px-6">
+                      {row.date_of_admission || row.patient?.date_of_admission || '—'}
+                    </td>
+                    <td className="px-4 py-3 sm:px-6">
+                      {row.condition || row.patient?.condition || '—'}
+                    </td>
+                    <td className="px-4 py-3 sm:px-6">
+                      <span className="inline-flex rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-700">
+                        {row.status || row.patient?.status || 'Pending'}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })
             ) : (
               <tr>
                 <td
