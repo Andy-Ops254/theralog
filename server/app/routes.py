@@ -39,7 +39,8 @@ def clinician_login():
     # generate access tokens
     access_token = create_access_token(
         identity={"clinician_id": clinicians.id, "email": clinicians.email},
-        expires_delta=timedelta(days=7)
+        expires_delta=timedelta(days=7), 
+        additional_claims ={"name": clinicians.name}
     )
     refresh_token = create_refresh_token(identity={"clinician_id": clinicians.id, "email": clinicians.email})
     return jsonify({
@@ -99,19 +100,31 @@ def refresh_token():
 
     
 @api.route("/new_patient", methods=['POST'])
+@jwt_required()
 def new_patient():
     data = request.get_json()
     if not data:
         return jsonify({"error": "Please fill in the required fields!!"}), 400
     
+    identity = get_jwt_identity()
+    if not isinstance(identity, dict):
+        return jsonify({"error": "Clinician identity not found in token"}), 400
+
+    clinician_id = identity.get("clinician_id")
+    if not clinician_id:
+        return jsonify({"error": "Clinician identity not found in token"}), 400
+
     id = data.get("id")
-    full_name = data.get('full_name')
+    full_name = data.get('full_name') or data.get('name')
     date_of_birth = data.get('date_of_birth')
     sex = data.get('sex')
     condition = data.get('condition')
-    clinician_id = data.get("clinician_id")
     status = data.get("status")
     date_of_admission = data.get("date_of_admission")
+
+    if not full_name:
+        return jsonify({"error": "Full name is required"}), 400
+
     patient = Patient.query.filter_by(id=id).first()
     if patient:
         return jsonify ({"error":"Patient already exists!"}), 409
@@ -149,13 +162,11 @@ def read_patients():
         Patient.clinician_id==Clinician_id
     ).all()
 
-    if not patients:
-        return jsonify ({"error": "Patients not found!"}), 404
-    
     response = [
     {
+        "id": patient.id,
         "full_name" : patient.full_name,
-        "date_of_birth":patient.date_of_birth,
+        "date_of_birth": patient.date_of_birth,
         "sex": patient.sex,
         "condition": patient.condition,
         "status": patient.status,
@@ -172,7 +183,13 @@ def read_patients():
     }), 200
 
 @api.route('/patient/<int:id>', methods=['GET', 'PATCH'])
+
 def get_patient(id):
+    if request.method == 'OPTIONS':
+        return '', 200
+    return _get_patient_protected(id)
+@jwt_required()
+def _get_patient_protected(id):
     if request.method == 'GET':
         #get the full name from the client side
         # full_name = request.args.get("full_name")
