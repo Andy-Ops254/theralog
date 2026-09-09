@@ -34,7 +34,7 @@ const navigate=useNavigate()
       return res.json()
     }) 
     .then(data => {
-      console.log(data)
+      // console.log(data)
       setPatient(data)
     })
     .catch(err => setError(err.msg))

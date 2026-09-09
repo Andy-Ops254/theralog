@@ -54,7 +54,7 @@ function Dashboard() {
     <div className="space-y-8">
         <div className="rounded-4xl border border-white/40 bg-white/50 px-6 py-5 shadow-[12px_12px_30px_rgba(15,23,42,0.08),-12px_-12px_30px_rgba(255,255,255,0.8)] backdrop-blur-sm">
             <h1 className="text-2xl font-semibold text-[#12223E]">
-                👋 Welcome, {username}
+                Welcome, {username}
             </h1>
             <p className="mt-2 text-sm text-[#4A6EA0]">
                 Here's what's happening in your clinic today.
