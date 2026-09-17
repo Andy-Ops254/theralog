@@ -1,6 +1,7 @@
 import { Search } from 'lucide-react'
 import React from 'react'
 import { useEffect,useState } from 'react'
+import AddSessionForm from '../components/AddSessionForm'
 
 function Sessions() {  
 
@@ -34,6 +35,14 @@ function Sessions() {
       .catch((err) => console.error(err))
   }, [])
 
+  function handleOpenModal(){
+      setIsModalOpen(true)
+    }
+
+    function handleCloseModal(){
+      setIsModalOpen(false)
+    }
+
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
@@ -46,7 +55,9 @@ function Sessions() {
             Manage your clinical sessions
           </p>
         </div>
-        <button className="flex items-center gap-2 rounded-2xl bg-[#12223E] px-4 py-2 font-semibold text-white shadow-[6px_6px_12px_rgba(18,34,62,0.2),-6px_-6px_12px_rgba(255,255,255,0.12)] transition-transform duration-200 hover:scale-105 cursor-pointer whitespace-nowrap">
+        <button 
+        onClick={handleOpenModal}
+        className="flex items-center gap-2 rounded-2xl bg-[#12223E] px-4 py-2 font-semibold text-white shadow-[6px_6px_12px_rgba(18,34,62,0.2),-6px_-6px_12px_rgba(255,255,255,0.12)] transition-transform duration-200 hover:scale-105 cursor-pointer whitespace-nowrap">
           <span className="text-2xl leading-none">+</span>
           <span>Add Sessions</span>
         </button>
@@ -113,6 +124,8 @@ function Sessions() {
           </tbody>
         </table>
       </div>
+
+      { isModalOpen && <AddSessionForm onCloseModal={handleCloseModal}/>}
     </div>
   )
 }

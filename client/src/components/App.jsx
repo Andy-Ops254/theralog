@@ -30,7 +30,6 @@ function App() {
       >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/sessions" element={<Sessions />} />
-        {/* <Route path="/psychologists" element={<Psychologists />} /> */}
         <Route path="/patients" element={<Patients />} />
         <Route path="/patients/:id" element={<PatientProfile />} />
         <Route path="/referrals" element={<Referrals />} />
