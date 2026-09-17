@@ -6,11 +6,17 @@ import AddSessionForm from '../components/AddSessionForm'
 function Sessions() {  
 
   const[tableRows, setTableRows]= useState([])
+  const [patients, setPatients] = useState([])
+  const [selectedPatientId, setSelectedPatientId] = useState('')
   const [search, setSearch]= useState('')
   const [isModalOpen, setIsModalOpen]=useState(false)
 
+  const selectedPatient = patients.find(
+    patient => String(patient.id) === String(selectedPatientId)
+  )
+
   const filteredRows = tableRows.filter(row =>
-    `${row.patient_id || ''} ${row.clinician_id || ''}`
+    `${row.patient_name || ''} ${row.clinician_name || ''}`
       .toLowerCase()
       .includes(search.toLowerCase())
   )
@@ -35,12 +41,65 @@ function Sessions() {
       .catch((err) => console.error(err))
   }, [])
 
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      return
+    }
+
+    fetch('http://127.0.0.1:5000/patients', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Failed to fetch patients')
+        }
+        return res.json()
+      })
+      .then((data) => setPatients(data?.patients || []))
+      .catch((err) => console.error(err))
+  }, [])
+
   function handleOpenModal(){
       setIsModalOpen(true)
     }
 
     function handleCloseModal(){
       setIsModalOpen(false)
+    }
+
+    function handleSaveSession(sessionData) {
+      const token = localStorage.getItem('token')
+      return fetch(`http://127.0.0.1:5000/patient/${sessionData.patient_id}/session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          session_date: sessionData.session_date,
+          duration: sessionData.duration,
+          notes: sessionData.notes,
+          session_type: sessionData.sessionType,
+          status: sessionData.status,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            return response.json()
+              .catch(() => ({}))
+              .then((errorData) => {
+                throw new Error(errorData.error || 'Failed to save session')
+              })
+          }
+          return response.json()
+        })
+        .then((savedSession) => {
+          setTableRows((currentRows) => [savedSession, ...currentRows])
+          return savedSession
+        })
     }
 
 
@@ -57,11 +116,28 @@ function Sessions() {
         </div>
         <button 
         onClick={handleOpenModal}
+        disabled={!selectedPatient}
         className="flex items-center gap-2 rounded-2xl bg-[#12223E] px-4 py-2 font-semibold text-white shadow-[6px_6px_12px_rgba(18,34,62,0.2),-6px_-6px_12px_rgba(255,255,255,0.12)] transition-transform duration-200 hover:scale-105 cursor-pointer whitespace-nowrap">
           <span className="text-2xl leading-none">+</span>
           <span>Add Sessions</span>
         </button>
       </div>
+
+      <label className="flex max-w-sm flex-col gap-2 text-sm font-medium text-[#12223E]">
+        Patient
+        <select
+          value={selectedPatientId}
+          onChange={(event) => setSelectedPatientId(event.target.value)}
+          className="rounded-2xl border border-white/60 bg-white/60 px-4 py-3 text-[#12223E] shadow-[inset_6px_6px_14px_rgba(15,23,42,0.08),inset_-6px_-6px_14px_rgba(255,255,255,0.8)] outline-none"
+        >
+          <option value="">Select a patient</option>
+          {patients.map((patient) => (
+            <option key={patient.id} value={patient.id}>
+              {patient.full_name}
+            </option>
+          ))}
+        </select>
+      </label>
 
       {/* ── Search Bar ── */}
       <div className="rounded-3xl border border-white/40 bg-white/50 px-4 py-3 shadow-[12px_12px_30px_rgba(15,23,42,0.08),-12px_-12px_30px_rgba(255,255,255,0.8)] backdrop-blur-sm inline-flex gap-4">
@@ -95,8 +171,8 @@ function Sessions() {
                   key={`${row.id || 'row'}-${index}`}
                   className="transition hover:bg-cyan-50/60 hover:scale-102 duration-200"
                 >
-                  <td className="px-4 py-3 sm:px-6 font-medium">{row.patient_id || '—'}</td>
-                  <td className="px-4 py-3 sm:px-6">{row.clinician_id || '—'}</td>
+                  <td className="px-4 py-3 sm:px-6 font-medium">{row.patient_name || '—'}</td>
+                  <td className="px-4 py-3 sm:px-6">{row.clinician_name || '—'}</td>
                   <td className="px-4 py-3 sm:px-6">{row.session_date || '—'}</td>
                   <td className="px-4 py-3 sm:px-6">
                     <span className="inline-flex rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-700">
@@ -125,7 +201,14 @@ function Sessions() {
         </table>
       </div>
 
-      { isModalOpen && <AddSessionForm onCloseModal={handleCloseModal}/>}
+      {isModalOpen && selectedPatient && (
+        <AddSessionForm
+          onCloseModal={handleCloseModal}
+          onSave={handleSaveSession}
+          patientId={selectedPatient.id}
+          patientName={selectedPatient.full_name}
+        />
+      )}
     </div>
   )
 }

@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { jwtDecode } from 'jwt-decode'
+import { X } from 'lucide-react'
 
-function AddSessionForm({ onSaveDraft, onSave,onCloseModal }) {
+function AddSessionForm({ onSaveDraft, onSave, onCloseModal, patientId, patientName }) {
 
   const [expanded, setExpanded] = useState(null)
   const [sessionDetails, setSessionDetails] = useState({
     session_date: '',
     duration: '',
-    name: '',
   })
   const [notes, setNotes] = useState({
     subjective: "",
@@ -16,6 +16,8 @@ function AddSessionForm({ onSaveDraft, onSave,onCloseModal }) {
     plan: "",
   });
   const [lastSaved, setLastSaved] = useState(null);
+  const [saveError, setSaveError] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
   const [status, setStatus] = useState("Scheduled")
   const [sessionType, setSessionType] = useState("Follow-up")
   const token = localStorage.getItem('token')
@@ -25,12 +27,17 @@ function AddSessionForm({ onSaveDraft, onSave,onCloseModal }) {
   const handleSaveDraft = () => {
     const savedAt = new Date()
     setLastSaved(savedAt)
-    onSaveDraft?.({ ...sessionDetails, status, sessionType, psychologist, notes })
+    onSaveDraft?.({ ...sessionDetails, patient_id: patientId, status, sessionType, psychologist, notes })
   }
 
   const handleFinalize = () => {
-    onSave?.({ ...sessionDetails, status: 'finalized', sessionType, psychologist, notes })
-    onCloseModal()
+    setSaveError('')
+    setIsSaving(true)
+
+    Promise.resolve(onSave?.({ ...sessionDetails, patient_id: patientId, status, sessionType, psychologist, notes }))
+      .then(() => onCloseModal())
+      .catch((error) => setSaveError(error.message || 'Failed to save session'))
+      .finally(() => setIsSaving(false))
   }
 
   const handleDetailChange = (event) => {
@@ -66,15 +73,28 @@ function AddSessionForm({ onSaveDraft, onSave,onCloseModal }) {
   return (
     <div className='rounded-[28px] border border-white/50 bg-white/45 p-8 shadow-[16px_16px_40px_rgba(15,23,42,0.10),-16px_-16px_40px_rgba(255,255,255,0.85)] backdrop-blur-md'>
       <div className='mb-8 flex items-start justify-between gap-4'>
-        <h1 className='text-2xl font-semibold text-[#12223E]'>New Session</h1>
-        <div className='text-right text-xs font-light text-[#12223E]/60'>
-        {lastSaved
-          ? `Draft saved ${lastSaved.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}`
-          : "Not saved yet"
-        }
+        <div>
+          <h1 className='text-2xl font-semibold text-[#12223E]'>New Session</h1>
+          <p className='mt-1 text-sm text-[#12223E]/60'>Patient: {patientName}</p>
+        </div>
+        <div className='flex items-start gap-4'>
+          <div className='text-right text-xs font-light text-[#12223E]/60'>
+            {lastSaved
+              ? `Draft saved ${lastSaved.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}`
+              : "Not saved yet"
+            }
+          </div>
+          <button
+            type='button'
+            onClick={onCloseModal}
+            aria-label='Close new session form'
+            className='rounded-full p-1 text-[#12223E]/60 transition hover:bg-[#12223E]/10 hover:text-[#12223E] focus:outline-none focus:ring-2 focus:ring-[#12223E]/30'
+          >
+            <X className='h-5 w-5' />
+          </button>
         </div>
       </div>
 
@@ -98,18 +118,6 @@ function AddSessionForm({ onSaveDraft, onSave,onCloseModal }) {
             type='number'
             name='duration'
             value={sessionDetails.duration}
-            onChange={handleDetailChange}
-            className='mt-2 rounded-2xl border border-white/60 bg-white/60 px-4 py-3 text-[#12223E] shadow-[inset_6px_6px_14px_rgba(15,23,42,0.08),inset_-6px_-6px_14px_rgba(255,255,255,0.8)] transition focus:outline-none focus:ring-2 focus:ring-[#12223E]/30 focus:ring-offset-1'
-          />
-        </label>
-
-        <label htmlFor='name' className='flex flex-col text-sm font-medium text-[#12223E]'>
-          Name
-          <input 
-            id='name'
-            type='text'
-            name='name'
-            value={sessionDetails.name}
             onChange={handleDetailChange}
             className='mt-2 rounded-2xl border border-white/60 bg-white/60 px-4 py-3 text-[#12223E] shadow-[inset_6px_6px_14px_rgba(15,23,42,0.08),inset_-6px_-6px_14px_rgba(255,255,255,0.8)] transition focus:outline-none focus:ring-2 focus:ring-[#12223E]/30 focus:ring-offset-1'
           />
@@ -225,11 +233,13 @@ function AddSessionForm({ onSaveDraft, onSave,onCloseModal }) {
             <button
             type='button'
             onClick={handleFinalize}
+            disabled={isSaving}
             className='rounded-2xl bg-[#12223E] px-5 py-3 text-sm font-medium text-white shadow-[6px_6px_16px_rgba(15,23,42,0.18),-6px_-6px_16px_rgba(255,255,255,0.75)] transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#12223E]/30 active:shadow-[inset_4px_4px_10px_rgba(0,0,0,0.2),inset_-4px_-4px_10px_rgba(255,255,255,0.15)]'
             >
-              Finalize session
+              {isSaving ? 'Saving...' : 'Finalize session'}
             </button>
           </div>
+          {saveError && <p className='w-full text-right text-sm text-red-600'>{saveError}</p>}
         </div>
       </div>
     </div>
