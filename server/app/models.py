@@ -1,6 +1,7 @@
 from .extensions import db, bcrypt
 from sqlalchemy_serializer import SerializerMixin # type: ignore
 from sqlalchemy.orm import validates # type: ignore
+from sqlalchemy.dialects.postgresql import JSONB # type: ignore
 
 class Clinician (db.Model, SerializerMixin):
     __tablename__='clinicians'
@@ -84,7 +85,9 @@ class Session(db.Model, SerializerMixin):
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'))
     clinician_id=db.Column(db.Integer, db.ForeignKey('clinicians.id'))
     session_date = db.Column(db.Date)
-    notes = db.Column(db.Text)
+    notes = db.Column(JSONB)
+    duration = db.Column (db.Integer)
+    session_type = db.Column(db.String)
     status= db.Column(db.String)
     created_at=db.Column(db.DateTime, server_default=db.func.now())
     updated_at=db.Column(db.DateTime, server_default=db.func.now())

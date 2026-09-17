@@ -273,6 +273,29 @@ def patients_sessions(patient_id):
         "sessions": response
     }),200
 
+@api.route('/sessions', methods=['GET'])
+@jwt_required()
+def get_sessions():
+    sessions= Session.query.all()
+    if not sessions:
+        return jsonify({'error': "Sessions not found"}), 404
+
+    return jsonify ({
+        'total_sessions':len(sessions),
+        'sessions':[
+            {
+                'id': session.id,
+                'patient_id':session.patient_id,
+                'patient_name': session.patients.full_name if session.patients else None,
+                'clinician_id':session.clinician_id,
+                'clinician_name': session.clinicians.name if session.clinicians else None,
+                'session_date':session.session_date.isoformat() if session.session_date else None,
+                'status':session.status,
+                'created_at':session.created_at.isoformat() if session.created_at else None,
+            }
+            for session in sessions
+        ]
+    }), 200
 
 @api.route('/patient/<int:id>/session', methods=['POST', 'PATCH'])
 @jwt_required()
@@ -283,7 +306,7 @@ def create_sessions(id):
             return jsonify({"error": "Patient not found!"}), 404
 
         identity = get_jwt_identity()
-        clinician_id = identity.get('clinican_id')
+        clinician_id = identity.get('clinician_id')
 
 
         #extract what the client has sent in json
@@ -293,21 +316,34 @@ def create_sessions(id):
         session_date=data.get('session_date')
         print(session_date)
         notes = data.get('notes')
+        duration =data.get('duration')
+        session_type =data.get('session_type')
         status = data.get('status')
 
 
         new_session= Session(
-            id=id,
+            patient_id=id,
             clinician_id=clinician_id,
             session_date = session_date,
             notes = notes,
             status = status,
+            session_type = session_type,
+            duration = duration
         )
 
         db.session.add(new_session)
         db.session.commit()
 
-        return jsonify(new_session.to_dict()), 201
+        return jsonify({
+            'id': new_session.id,
+            'patient_id': new_session.patient_id,
+            'patient_name': patient.full_name,
+            'clinician_id': new_session.clinician_id,
+            'clinician_name': identity.get('name'),
+            'session_date': new_session.session_date.isoformat() if new_session.session_date else None,
+            'status': new_session.status,
+            'created_at': new_session.created_at.isoformat() if new_session.created_at else None,
+        }), 201
     
     elif request.method=='PATCH':
         patient = Patient.query.filter_by(id=id).first()
@@ -319,7 +355,7 @@ def create_sessions(id):
         if not data:
             return jsonify({"error": "No data sent"}), 404
         
-        allowed_fields = ['session_date', 'notes', 'status']
+        allowed_fields = ['session_date', 'notes', 'status', 'duration', 'session_type']
 
         for field in allowed_fields:
             if field in data:
