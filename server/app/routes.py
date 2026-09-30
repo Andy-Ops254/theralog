@@ -241,26 +241,27 @@ def _get_patient_protected(id):
         return jsonify({'message': 'Patient has successfully been updated'}), 200
     
 
-@api.route('/patient/<int:patient_id>/sessions', methods=['GET'])
-def patients_sessions(patient_id):
+@api.route('/patient/<int:id>/sessions', methods=['GET'])
+@jwt_required()
+def patients_sessions(id):
     #patient query
-    patient = Patient.query.filter_by(patient_id=patient_id).first()
+    patient = Patient.query.filter_by(id=id).first()
 
     if not patient:
         return jsonify({"error": "Patient not found!"}), 404
     
     #if patient is found we query the sessions
-    sessions=Session.query.filter_by(patient_id=patient_id).all()
-
-    if not sessions:
-        return jsonify ({'error': "No sessions found"}), 404
+    sessions=Session.query.filter_by(patient_id=id).all()
 
     response = [
         {
+        "id":session.id,
         "patient_id":session.patient_id,
         "clinician_id":session.clinician_id,
         "session_date":session.session_date.isoformat(),
         "notes": session.notes,
+        "duration":session.duration,
+        "session_type":session.session_type,
         "status": session.status,
         "created_at":session.created_at.isoformat()
     }
