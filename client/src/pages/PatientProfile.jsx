@@ -9,6 +9,8 @@ function PatientProfile() {
   const [patient, setPatient]=useState(null)
   const [loading, setLoading]=useState(false)
   const [error, setError]=useState(null)
+  const [sessions, setSessions] = useState([])
+  const [sessionsLoading, setSessionsLoading]=useState(false)
 
 const navigate=useNavigate()
 
@@ -27,7 +29,7 @@ const navigate=useNavigate()
       headers: {Authorization: `Bearer ${token}`}
     })
     .then(res => {
-      console.log(res.status)
+      // console.log(res.status)
       if (!res.ok) {
         throw new Error("Failed fetch!!!")
       }
@@ -37,10 +39,36 @@ const navigate=useNavigate()
       // console.log(data)
       setPatient(data)
     })
-    .catch(err => setError(err.msg))
+    .catch(err => setError(err.message))
     .finally(() => setLoading(false));
   }, [id])
 
+  useEffect (()=> {
+    const token =localStorage.getItem('token')
+    if(!token) {
+      setError('Not Authorized')
+      setSessionsLoading(false)
+      return
+    }
+    setError(null)
+    setSessionsLoading(true)
+
+    fetch(`http://127.0.0.1:5000/patient/${id}/sessions`, {
+      headers:{Authorization: `Bearer ${token}`}
+    })
+    .then((res)=> {
+      if(!res.ok) {
+        throw new Error("Failed to Fetch!")
+      }
+      return res.json()
+    })
+    .then(data => {
+      console.log(data)
+      setSessions(data.sessions)
+    })
+    .catch(err => setError(err.message))
+    .finally(()=> setSessionsLoading(false))
+  },[id])
 
   function getInitials(fullname = ""){
     return fullname
@@ -150,26 +178,52 @@ const navigate=useNavigate()
             </div>
         </aside>
 
+<section className='rounded-3xl p-7 min-h-105 bg-gray-300/50'>
+  <div className='flex justify-between items-center mb-5'>
+    <h3 className='text-lg font-semibold m-0 text-[#4A6EA0]'>Session notes</h3>
+    <button className='bg-[#4A6EA0] text-white rounded-lg px-2 py-4 text-[13px] font-medium cursor-pointer hover:scale-105'>
+      + ADD NOTES
+    </button>
+  </div>
 
-        <section className='rounded-3xl p-7 min-h-105 bg-gray-300/50'>
-          <div className='flex justify-between items-center mb-5'>
-            <h3 className='text-lg font-semibold m-0 text-[#4A6EA0]'>Session notes</h3>
-            <button className='bg-[#4A6EA0] text-white border-none rounded-lg px-2 py-4 text-[13px] font-medium cursor-pointer hover:scale-105'>
-              + ADD NOTES
-            </button>
+  {sessionsLoading ? (
+    <p className='text-[14px] text-gray-400'>Loading sessions...</p>
+  ) : sessions.length === 0 ? (
+    <div className='flex flex-col items-center justify-center h-80'>
+      {patient && (
+        <p className='text-[14px] text-gray-400 m-0'>
+          No session notes yet for {patient.full_name.split(' ')[0]}.
+        </p>
+      )}
+      <p className='text-[13px] text-gray-400 m-0'>
+        Notes from future sessions will appear here.
+      </p>
+    </div>
+  ) : (
+    <div className='flex flex-col gap-4'>
+      {sessions.map(session => (
+        <article key={session.id} className='rounded-2xl bg-white/60 p-5'>
+          <div className='flex justify-between items-center mb-3'>
+            <span className='text-sm font-medium text-[#4A6EA0]'>
+              {new Date(session.session_date).toLocaleDateString()}
+            </span>
+            <span className='text-xs px-2 py-1 rounded-full bg-cyan-100 text-cyan-800'>
+              {session.status}
+            </span>
           </div>
+          <p className='text-xs uppercase text-gray-500 mb-2'>{session.session_type}</p>
 
-        <div className='flex flex-col items-center justify-center h-80 rounded-2xl'>
-        {patient && (
-          <p className='text-[14px] text-gray-400 m-0 '>
-            No session notes yet for {patient.full_name.split(" ")[0]}.
-          </p>
-        )}
-          <p className='text-[13px] text-gray-400 m-0'> 
-            Notes from future sessions will appear here.
-          </p>
-        </div>
-          </section>
+          {Object.entries(session.notes || {}).map(([key, value]) => (
+            <div key={key} className='mb-2'>
+              <h4 className='text-xs font-semibold uppercase text-gray-500 m-0'>{key}</h4>
+              <p className='text-sm text-gray-700 m-0'>{String(value)}</p>
+            </div>
+          ))}
+        </article>
+      ))}
+    </div>
+  )}
+</section>
 
       </div>
     )}

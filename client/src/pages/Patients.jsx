@@ -45,7 +45,7 @@ function Patients() {
           return res.json()
         })
         .then((data) => {
-          // console.log(data)
+          console.log(data)
           setTableRows(data?.patients || [])
         })
         .catch(err => console.error(err))
