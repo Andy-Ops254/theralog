@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import DashboardCard from './DashboardCard'
 
 function Dashboard() {
@@ -31,18 +31,22 @@ function Dashboard() {
             fetch('http://127.0.0.1:5000/dashboard/stats', {
                 headers: { Authorization: `Bearer ${token}` }
             }),
+            fetch('http://127.0.0.1:5000/referrals', {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
             fetch('http://127.0.0.1:5000/weekly/sessions', {
                 headers: { Authorization: `Bearer ${token}` }
             })
         ])
-            .then(([res1, res2]) =>
+            .then(([res1, referralResponse, res2]) =>
             Promise.all([
                 res1.json(),
+                referralResponse.json(),
                 res2.status === 204 ? Promise.resolve([]) : res2.json()
             ])
             )
-            .then(([stats, sessions]) => {
-            setDashStats(stats)
+            .then(([stats, referralData, sessions]) => {
+            setDashStats({ ...stats, referrals: referralData.total_referrals ?? stats.referrals ?? 0 })
             setTableRows(sessions)
             })
             .catch(err => {
