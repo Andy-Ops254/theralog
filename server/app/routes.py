@@ -258,12 +258,12 @@ def patients_sessions(id):
         "id":session.id,
         "patient_id":session.patient_id,
         "clinician_id":session.clinician_id,
-        "session_date":session.session_date.isoformat(),
+        "session_date":session.session_date.isoformat() if session.session_date else None,
         "notes": session.notes,
         "duration":session.duration,
         "session_type":session.session_type,
         "status": session.status,
-        "created_at":session.created_at.isoformat()
+        "created_at":session.created_at.isoformat() if session.created_at else None
     }
         for session in sessions
     ]
@@ -385,98 +385,112 @@ def delete_session(id, session_id):
 @api.route('/patient/<int:id>/referral', methods=['POST'])
 @jwt_required()
 def create_referrals(id):
-    if request.method == 'POST':
+    identity = get_jwt_identity()
+    clinician_id = identity.get('clinician_id')
+    patient = Patient.query.filter_by(id=id, clinician_id=clinician_id).first()
+    if not patient:
+        return jsonify({"error": "Patient not found!"}), 404
 
-        patient = Patient.query.filter_by(id=id)
-        if not patient:
-            return jsonify({"error": "Patient not found!"}), 404
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data was sent!"}), 400
 
-        #get clinician id from jwt token- whoever is logged in
-        identity = get_jwt_identity()
-        clinician_id = identity.get('clinician_id')
+    new_referral = Referral(
+        patient_id=patient.id,
+        clinician_id=clinician_id,
+        referred_to=data.get('referred_to'),
+        reason=data.get('reason'),
+        summary=data.get('summary'),
+        sessions_completed=data.get('sessions_completed')
+    )
+    db.session.add(new_referral)
+    db.session.commit()
 
-        data = request.get_json()
-        if not data:
-            return jsonify ({"Error": "No data was sent!"}), 404
+    return jsonify(serialize_referral(new_referral)), 201
 
-        reason = data.get('reason')
-        summary = data.get('summary')
-        sessions_completed= data.get('sessions_completed')
 
-        new_referral = Referral(
-            id = id,
-            clinician_id = clinician_id,
-            reason=reason,
-            summary = summary,
-            sessions_completed = sessions_completed
-        )
-        db.session.add(new_referral)
-        db.session.commit()
+def serialize_referral(referral):
+    patient = referral.patients
+    if not patient and not referral.patient_id:
+        patient = Patient.query.filter_by(
+            id=referral.id,
+            clinician_id=referral.clinician_id
+        ).first()
 
-        return make_response(new_referral.to_dict()), 201
+    return {
+        "id": referral.id,
+        "patient_id": referral.patient_id or (patient.id if patient else None),
+        "patient_name": patient.full_name if patient else None,
+        "clinician_id": referral.clinician_id,
+        "clinician_name": referral.clinicians.name if referral.clinicians else None,
+        "referred_to": referral.referred_to,
+        "reason": referral.reason,
+        "summary": referral.summary,
+        "sessions_completed": referral.sessions_completed,
+        "created_at": referral.created_at.isoformat() if referral.created_at else None,
+    }
 
 
 @api.route('/referrals', methods=['GET', 'POST'])
 @jwt_required()
 def clinic_referrals():
-    if request.method == 'GET':
-        referrals = Referral.query.all()
+    identity = get_jwt_identity()
+    clinician_id = identity.get('clinician_id')
 
-        if not referrals:
-            return jsonify ({"error": "No referrals found!"}), 400
-        
+    if request.method == 'GET':
+        referrals = Referral.query.filter_by(clinician_id=clinician_id).order_by(Referral.created_at.desc()).all()
         return jsonify({
-            "total_referrals" :len(referrals),
-            "referrals": [
-                {
-                    "id": referral.id,
-                    "patient_id": referral.patient_id,
-                    "referred_to": referral.referred_to,
-                    "reason": referral.reason,
-                    "summary": referral.summary,
-                    "sessions_completed": referral.sessions_completed,
-                    "created_at": referral.created_at
-                }
-                for referral in referrals
-            ]
+            "total_referrals": len(referrals),
+            "referrals": [serialize_referral(referral) for referral in referrals]
         }), 200
 
     elif request.method == 'POST':
-
-        identity = get_jwt_identity()
-        clinician_id = identity.get('clinician_id')
-
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data was sent"}), 400
 
-        patient_id = data.get('patient.id')
+        patient_id = data.get('patient_id')
+        patient = Patient.query.filter_by(id=patient_id, clinician_id=clinician_id).first()
+        if not patient:
+            return jsonify({"error": "Patient not found"}), 404
+
         referred_to = data.get('referred_to')
         reason = data.get('reason')
         summary = data.get('summary')
         sessions_completed = data.get('sessions_completed')
 
         new_referral = Referral(
-            patient_id= patient_id,
-            clinician_id = clinician_id,
-            referred_to= referred_to,
-            reason = reason,
-            summary = summary,
-            sessions_completed = sessions_completed
+            patient_id=patient_id,
+            clinician_id=clinician_id,
+            referred_to=referred_to,
+            reason=reason,
+            summary=summary,
+            sessions_completed=sessions_completed
         )
         db.session.add(new_referral)
         db.session.commit()
 
-        return jsonify ({"message": "Referral cretated successfully"}), 201 
+        return jsonify(serialize_referral(new_referral)), 201
 
 @api.route('/referrals/<int:id>', methods=['PATCH', 'DELETE'])
+@jwt_required()
 def update_delete(id):
+    identity = get_jwt_identity()
+    clinician_id = identity.get('clinician_id')
+
     if request.method=='PATCH':
-        referral = Referral.query.filter_by(id=id).first()
+        referral = Referral.query.filter_by(id=id, clinician_id=clinician_id).first()
         if not referral:
             return jsonify({"error": "Referral not found"}), 404
         
         data= request.get_json()
         if not data:
-            return jsonify({"erro":"No data sent!"}), 404
+            return jsonify({"error":"No data sent!"}), 400
+
+        if 'patient_id' in data:
+            patient = Patient.query.filter_by(id=data['patient_id'], clinician_id=clinician_id).first()
+            if not patient:
+                return jsonify({"error": "Patient not found"}), 404
         
         allowed_fields = ['patient_id', 'referred_to', 'reason', 'summary', 'sessions_completed']
 
@@ -485,10 +499,10 @@ def update_delete(id):
                 setattr(referral, field, data[field])
 
         db.session.commit()
-        return jsonify({"message": "Referral field successfully updated!"}),200
+        return jsonify(serialize_referral(referral)), 200
     
     elif request.method == 'DELETE':
-        referral = Referral.query.filter_by(id=id).first()
+        referral = Referral.query.filter_by(id=id, clinician_id=clinician_id).first()
         if not referral:
             return jsonify({"error": "Referral not found!"}), 404
         
