@@ -102,6 +102,9 @@ const navigate=useNavigate()
   }
 
   const patientStatusStyle = patient ? statusStyles(patient.status) : { bg: 'rgba(148,163,184,0.15)', text: '#94A3B8' };
+  const latestSession = [...sessions].sort((first, second) =>
+    new Date(second.session_date || second.created_at) - new Date(first.session_date || first.created_at)
+  )[0]
 
   return (
     <div className=''>
@@ -181,7 +184,12 @@ const navigate=useNavigate()
 <section className='rounded-3xl p-7 min-h-105 bg-gray-300/50'>
   <div className='flex justify-between items-center mb-5'>
     <h3 className='text-lg font-semibold m-0 text-[#4A6EA0]'>Session notes</h3>
-    <button className='bg-[#4A6EA0] text-white rounded-lg px-2 py-4 text-[13px] font-medium cursor-pointer hover:scale-105'>
+    <button
+      onClick={() => navigate('/sessions', {
+        state: { patientId: patient.patient_id, session: latestSession || null },
+      })}
+      className='bg-[#4A6EA0] text-white rounded-lg px-2 py-4 text-[13px] font-medium cursor-pointer hover:scale-105'
+    >
       + ADD NOTES
     </button>
   </div>

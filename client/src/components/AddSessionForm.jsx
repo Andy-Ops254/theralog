@@ -2,24 +2,25 @@ import { useState } from 'react'
 import { jwtDecode } from 'jwt-decode'
 import { X } from 'lucide-react'
 
-function AddSessionForm({ onSaveDraft, onSave, onCloseModal, patientId, patientName }) {
+function AddSessionForm({ onSaveDraft, onSave, onCloseModal, patientId, patientName, initialSession }) {
 
   const [expanded, setExpanded] = useState(null)
   const [sessionDetails, setSessionDetails] = useState({
-    session_date: '',
-    duration: '',
+    session_date: initialSession?.session_date?.slice(0, 10) || '',
+    duration: initialSession?.duration ?? '',
   })
   const [notes, setNotes] = useState({
-    subjective: "",
-    objective: "",
-    assessment: "",
-    plan: "",
+    subjective: initialSession?.notes?.subjective || '',
+    objective: initialSession?.notes?.objective || '',
+    assessment: initialSession?.notes?.assessment || '',
+    plan: initialSession?.notes?.plan || '',
   });
   const [lastSaved, setLastSaved] = useState(null);
   const [saveError, setSaveError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
-  const [status, setStatus] = useState("Scheduled")
-  const [sessionType, setSessionType] = useState("Follow-up")
+  const [status, setStatus] = useState(initialSession?.status || 'Scheduled')
+  const [sessionType, setSessionType] = useState(initialSession?.session_type || 'Follow-up')
+  const isEditing = Boolean(initialSession?.id)
   const token = localStorage.getItem('token')
   const user = token ? jwtDecode(token) : null
   const psychologist = user?.name || ''
@@ -34,7 +35,15 @@ function AddSessionForm({ onSaveDraft, onSave, onCloseModal, patientId, patientN
     setSaveError('')
     setIsSaving(true)
 
-    Promise.resolve(onSave?.({ ...sessionDetails, patient_id: patientId, status, sessionType, psychologist, notes }))
+    Promise.resolve(onSave?.({
+      ...sessionDetails,
+      id: initialSession?.id,
+      patient_id: patientId,
+      status,
+      sessionType,
+      psychologist,
+      notes,
+    }))
       .then(() => onCloseModal())
       .catch((error) => setSaveError(error.message || 'Failed to save session'))
       .finally(() => setIsSaving(false))
@@ -74,7 +83,7 @@ function AddSessionForm({ onSaveDraft, onSave, onCloseModal, patientId, patientN
     <div className='rounded-[28px] border border-white/50 bg-white/45 p-8 shadow-[16px_16px_40px_rgba(15,23,42,0.10),-16px_-16px_40px_rgba(255,255,255,0.85)] backdrop-blur-md'>
       <div className='mb-8 flex items-start justify-between gap-4'>
         <div>
-          <h1 className='text-2xl font-semibold text-[#12223E]'>New Session</h1>
+          <h1 className='text-2xl font-semibold text-[#12223E]'>{isEditing ? 'Edit Session' : 'New Session'}</h1>
           <p className='mt-1 text-sm text-[#12223E]/60'>Patient: {patientName}</p>
         </div>
         <div className='flex items-start gap-4'>
@@ -236,7 +245,7 @@ function AddSessionForm({ onSaveDraft, onSave, onCloseModal, patientId, patientN
             disabled={isSaving}
             className='rounded-2xl bg-[#12223E] px-5 py-3 text-sm font-medium text-white shadow-[6px_6px_16px_rgba(15,23,42,0.18),-6px_-6px_16px_rgba(255,255,255,0.75)] transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#12223E]/30 active:shadow-[inset_4px_4px_10px_rgba(0,0,0,0.2),inset_-4px_-4px_10px_rgba(255,255,255,0.15)]'
             >
-              {isSaving ? 'Saving...' : 'Finalize session'}
+              {isSaving ? 'Saving...' : isEditing ? 'Save changes' : 'Finalize session'}
             </button>
           </div>
           {saveError && <p className='w-full text-right text-sm text-red-600'>{saveError}</p>}

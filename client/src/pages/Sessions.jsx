@@ -1,18 +1,26 @@
 import { Search } from 'lucide-react'
 import React from 'react'
 import { useEffect,useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import AddSessionForm from '../components/AddSessionForm'
 
 function Sessions() {  
 
+  const location = useLocation()
+  const navigate = useNavigate()
   const[tableRows, setTableRows]= useState([])
   const [patients, setPatients] = useState([])
-  const [selectedPatientId, setSelectedPatientId] = useState('')
+  const [selectedPatientId, setSelectedPatientId] = useState(
+    location.state?.patientId ? String(location.state.patientId) : ''
+  )
   const [search, setSearch]= useState('')
   const [isModalOpen, setIsModalOpen]=useState(false)
 
   const selectedPatient = patients.find(
     patient => String(patient.id) === String(selectedPatientId)
+  )
+  const shouldShowSessionForm = isModalOpen || Boolean(
+    location.state?.patientId && selectedPatient
   )
 
   const filteredRows = tableRows.filter(row =>
@@ -68,12 +76,17 @@ function Sessions() {
 
     function handleCloseModal(){
       setIsModalOpen(false)
+      if (location.state?.patientId) {
+        navigate(location.pathname, { replace: true, state: null })
+      }
     }
 
     function handleSaveSession(sessionData) {
       const token = localStorage.getItem('token')
-      return fetch(`http://127.0.0.1:5000/patient/${sessionData.patient_id}/session`, {
-        method: 'POST',
+      return fetch(`http://127.0.0.1:5000/patient/${sessionData.patient_id}/session${
+        sessionData.id ? `/${sessionData.id}` : ''
+      }`, {
+        method: sessionData.id ? 'PATCH' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -97,7 +110,11 @@ function Sessions() {
           return response.json()
         })
         .then((savedSession) => {
-          setTableRows((currentRows) => [savedSession, ...currentRows])
+          setTableRows((currentRows) => sessionData.id
+            ? currentRows.map((row) => String(row.id) === String(savedSession.id)
+              ? { ...row, ...savedSession }
+              : row)
+            : [savedSession, ...currentRows])
           return savedSession
         })
     }
@@ -201,12 +218,13 @@ function Sessions() {
         </table>
       </div>
 
-      {isModalOpen && selectedPatient && (
+      {shouldShowSessionForm && selectedPatient && (
         <AddSessionForm
           onCloseModal={handleCloseModal}
           onSave={handleSaveSession}
           patientId={selectedPatient.id}
           patientName={selectedPatient.full_name}
+          initialSession={location.state?.session}
         />
       )}
     </div>
