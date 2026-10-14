@@ -55,6 +55,52 @@ def clinician_login():
     }), 200
     
 
+@api.route('/clinician/profile', methods=['GET', 'PATCH'])
+@jwt_required()
+def clinician_profile():
+    identity = get_jwt_identity()
+    clinician_id = identity.get('clinician_id') if isinstance(identity, dict) else None
+    if clinician_id is None:
+        return jsonify({"error": "Clinician identity not found in token"}), 400
+
+    clinician = Clinician.query.filter_by(id=clinician_id).first()
+    if not clinician:
+        return jsonify({"error": "Clinician not found"}), 404
+
+    if request.method == 'PATCH':
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No profile changes were provided"}), 400
+
+        name = data.get('name', clinician.name)
+        email = data.get('email', clinician.email)
+        if not isinstance(name, str) or not name.strip():
+            return jsonify({"error": "Name is required"}), 400
+        if not isinstance(email, str) or '@' not in email.strip():
+            return jsonify({"error": "A valid email is required"}), 400
+
+        email = email.strip().lower()
+        existing_clinician = Clinician.query.filter(
+            Clinician.email == email,
+            Clinician.id != clinician.id
+        ).first()
+        if existing_clinician:
+            return jsonify({"error": "Email is already in use"}), 409
+
+        clinician.name = name.strip()
+        clinician.email = email
+        db.session.commit()
+
+    return jsonify({
+        "id": clinician.id,
+        "name": clinician.name,
+        "email": clinician.email,
+        "role": clinician.role,
+        "is_active": clinician.is_active,
+        "created_at": clinician.created_at.isoformat() if clinician.created_at else None,
+    }), 200
+
+
 @api.route('/logout', methods=['DELETE'])
 @jwt_required()
 def logout():
@@ -298,7 +344,7 @@ def get_sessions():
         ]
     }), 200
 
-@api.route('/patient/<int:id>/session', methods=['POST', 'PATCH'])
+@api.route('/patient/<int:id>/session', methods=['POST'])
 @jwt_required()
 def create_sessions(id):
     if request.method=='POST':
@@ -346,40 +392,54 @@ def create_sessions(id):
             'created_at': new_session.created_at.isoformat() if new_session.created_at else None,
         }), 201
     
-    elif request.method=='PATCH':
-        patient = Patient.query.filter_by(id=id).first()
+@api.route('/patient/<int:id>/session/<int:session_id>', methods=['PATCH', 'DELETE'])
+@jwt_required()
+def delete_session(id, session_id):
+    identity = get_jwt_identity()
+    clinician_id = identity.get('clinician_id') if isinstance(identity, dict) else None
+    patient = Patient.query.filter_by(id=id, clinician_id=clinician_id).first()
+    if not patient:
+        return jsonify({"error": "Patient not found!"}), 404
 
-        if not patient:
-            return jsonify({"error": "Patient not found!"}), 404
-        
+    session = Session.query.filter_by(
+        id=session_id,
+        patient_id=id,
+        clinician_id=clinician_id
+    ).first()
+    if not session:
+        return jsonify({"error": "Session not found!"}), 404
+
+    if request.method == 'PATCH':
         data = request.get_json()
         if not data:
-            return jsonify({"error": "No data sent"}), 404
-        
-        allowed_fields = ['session_date', 'notes', 'status', 'duration', 'session_type']
+            return jsonify({"error": "No data sent"}), 400
 
+        allowed_fields = ['session_date', 'notes', 'status', 'duration', 'session_type']
         for field in allowed_fields:
             if field in data:
-                setattr(patient, field, data[field])
+                value = data[field]
+                if field == 'session_date' and isinstance(value, str):
+                    value = datetime.strptime(value, '%Y-%m-%d').date() if value else None
+                elif field == 'duration' and value == '':
+                    value = None
+                elif field == 'duration' and value is not None:
+                    value = int(value)
+                setattr(session, field, value)
 
         db.session.commit()
-        return jsonify ({"message": "session updated successfully"}), 200
-    
-@api.route('/patient/<int:id>/session/<int:session_id>', methods=['DELETE'])
-def delete_session(id, session_id):
-        patient = Patient.query.filter_by(id=id).first()
+        return jsonify({
+            'id': session.id,
+            'patient_id': session.patient_id,
+            'session_date': session.session_date.isoformat() if session.session_date else None,
+            'notes': session.notes,
+            'duration': session.duration,
+            'session_type': session.session_type,
+            'status': session.status,
+        }), 200
 
-        if not patient:
-            return jsonify ({"error": "patient not found!"}), 404
-        session = Session.query.filter_by(id=session_id).first()
-
-        if not session:
-            return jsonify({"error": "session not found!"}), 404
-
-        db.session.delete(session)
-        db.session.commit()
-
-        return jsonify({"message": "Session has been successfully deleted!"}), 200
+    db.session.delete(session)
+    db.session.commit()
+    return jsonify({"message": "Session has been successfully deleted!"}), 200
 
 
 @api.route('/patient/<int:id>/referral', methods=['POST'])
