@@ -138,6 +138,10 @@ class AuditLog(db.Model, SerializerMixin):
     clinician_id=db.Column(db.Integer, db.ForeignKey('clinicians.id'))
     action=db.Column(db.String)
     entity=db.Column(db.String)
+    entity_id = db.Column(db.Integer)
+    message = db.Column(db.String(255), nullable=False)     # "Created patient Jane Doe"
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now(), index=True)
     time=db.Column(db.DateTime)
 
     clinicians=db.relationship('Clinician', back_populates='auditLogs')
@@ -149,7 +153,19 @@ class AuditLog(db.Model, SerializerMixin):
         return (
             f"clinician_id={self.clinician_id}, action={self.action},"
             f"entity={self.entity}, time={self.time}"
+            f"message={self.message}, created_at={self.created_at}"
         )
+
+    #serializer function to keep the audit route clean
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "action": self.action,
+            "entity": self.entity,
+            "message": self.message,
+            "is_read": self.is_read,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
     
 
 # create a model for blacklisted tokens

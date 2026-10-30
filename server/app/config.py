@@ -1,9 +1,7 @@
 import os
-from dotenv import load_dotenv
+from flask import Flask
 
-load_dotenv()
+app = Flask(__name__)
 
-class Config:
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    JWT_SECRET_KEY = 'Rimoney02'
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"]
+app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]

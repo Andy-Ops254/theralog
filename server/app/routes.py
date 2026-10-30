@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, make_response
 from datetime import timedelta, datetime
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required, get_jwt # type: ignore
 from .extensions import db, bcrypt, jwt
-from .models import Clinician, Patient, Session, Referral, TokenBlacklist
+from .models import Clinician, Patient, Session, Referral, TokenBlacklist, AuditLog
 
 #blueprint creation for the routes
 api=Blueprint('api', __name__)
@@ -89,6 +89,7 @@ def clinician_profile():
 
         clinician.name = name.strip()
         clinician.email = email
+        log_activity(clinician.id, "updated", "clinician", f"Updated clinician profile for {clinician.name}")
         db.session.commit()
 
     return jsonify({
@@ -132,6 +133,8 @@ def register_clinician():
         is_active=is_active
     )
     db.session.add(new_clinician)
+    db.session.flush()
+    log_activity(new_clinician.id, "created", "clinician", f"Created clinician {new_clinician.name}")
     db.session.commit()
     Clinician_dict = new_clinician.to_dict(only=("id", "email", "name", "role", "is_active"))
     return make_response(Clinician_dict, 201)
@@ -187,6 +190,7 @@ def new_patient():
             date_of_admission = date_of_admission
         )
         db.session.add(new_patient)
+        log_activity(clinician_id, "created", "patient", f"Created patient {new_patient.full_name}")
         db.session.commit()
         patient_dict = new_patient.to_dict(only=(
             "id", "full_name", "sex", "date_of_birth", 
@@ -201,7 +205,9 @@ def new_patient():
 def read_patients():
 
     identity=get_jwt_identity()
-    Clinician_id = identity.get('clinician_id')
+    Clinician_id = identity.get('clinician_id') if isinstance(identity, dict) else None
+    if Clinician_id is None:
+        return jsonify({"error": "Clinician identity not found in token"}), 400
     
     #database querying 
     patients = Patient.query.filter(
@@ -236,6 +242,11 @@ def get_patient(id):
     return _get_patient_protected(id)
 @jwt_required()
 def _get_patient_protected(id):
+    identity = get_jwt_identity()
+    clinician_id = identity.get('clinician_id') if isinstance(identity, dict) else None
+    if clinician_id is None:
+        return jsonify({"error": "Clinician identity not found in token"}), 400
+
     if request.method == 'GET':
         #get the full name from the client side
         # full_name = request.args.get("full_name")
@@ -243,7 +254,7 @@ def _get_patient_protected(id):
         # if not full_name:
         #     return jsonify({"error": "full_name input is required!"}), 200
         #db query
-        patient = Patient.query.filter_by(id=id).first()
+        patient = Patient.query.filter_by(id=id, clinician_id=clinician_id).first()
 
         if not patient:
             return jsonify({"error": "Patient is not found!"}), 404
@@ -263,7 +274,7 @@ def _get_patient_protected(id):
 
     elif request.method == 'PATCH':
         #querying the client
-        patient = Patient.query.filter_by(id=id).first()
+        patient = Patient.query.filter_by(id=id, clinician_id=clinician_id).first()
 
         if not patient:
             return jsonify({"error": "Patient not found!"}), 404
@@ -281,7 +292,7 @@ def _get_patient_protected(id):
         for field in allowed_fields:
             if field in data:
                 setattr(patient, field, data[field])
-
+        log_activity(clinician_id, "updated", "patient", f"Updated patient {patient.full_name}")
         db.session.commit()
 
         return jsonify({'message': 'Patient has successfully been updated'}), 200
@@ -290,8 +301,13 @@ def _get_patient_protected(id):
 @api.route('/patient/<int:id>/sessions', methods=['GET'])
 @jwt_required()
 def patients_sessions(id):
+    identity = get_jwt_identity()
+    clinician_id = identity.get('clinician_id') if isinstance(identity, dict) else None
+    if clinician_id is None:
+        return jsonify({"error": "Clinician identity not found in token"}), 400
+
     #patient query
-    patient = Patient.query.filter_by(id=id).first()
+    patient = Patient.query.filter_by(id=id, clinician_id=clinician_id).first()
 
     if not patient:
         return jsonify({"error": "Patient not found!"}), 404
@@ -323,7 +339,12 @@ def patients_sessions(id):
 @api.route('/sessions', methods=['GET'])
 @jwt_required()
 def get_sessions():
-    sessions= Session.query.all()
+    identity = get_jwt_identity()
+    clinician_id = identity.get('clinician_id') if isinstance(identity, dict) else None
+    if clinician_id is None:
+        return jsonify({"error": "Clinician identity not found in token"}), 400
+
+    sessions= Session.query.filter_by(clinician_id=clinician_id).all()
     if not sessions:
         return jsonify({'error': "Sessions not found"}), 404
 
@@ -348,13 +369,14 @@ def get_sessions():
 @jwt_required()
 def create_sessions(id):
     if request.method=='POST':
-        patient = Patient.query.filter_by(id=id).first()
+        identity = get_jwt_identity()
+        clinician_id = identity.get('clinician_id') if isinstance(identity, dict) else None
+        if clinician_id is None:
+            return jsonify({"error": "Clinician identity not found in token"}), 400
+
+        patient = Patient.query.filter_by(id=id, clinician_id=clinician_id).first()
         if not patient:
             return jsonify({"error": "Patient not found!"}), 404
-
-        identity = get_jwt_identity()
-        clinician_id = identity.get('clinician_id')
-
 
         #extract what the client has sent in json
         data = request.get_json()
@@ -379,6 +401,8 @@ def create_sessions(id):
         )
 
         db.session.add(new_session)
+        # clinician_id = get_jwt_identity()
+        log_activity(clinician_id, "created", "session", f"created sessions for {patient.full_name}")
         db.session.commit()
 
         return jsonify({
@@ -425,7 +449,7 @@ def delete_session(id, session_id):
                 elif field == 'duration' and value is not None:
                     value = int(value)
                 setattr(session, field, value)
-
+        log_activity(clinician_id, "updated", "session", f"Updated session for {patient.full_name}")
         db.session.commit()
         return jsonify({
             'id': session.id,
@@ -438,6 +462,7 @@ def delete_session(id, session_id):
         }), 200
 
     db.session.delete(session)
+    log_activity(clinician_id, "deleted", "session", f"Deleted session for {patient.full_name}")
     db.session.commit()
     return jsonify({"message": "Session has been successfully deleted!"}), 200
 
@@ -464,6 +489,7 @@ def create_referrals(id):
         sessions_completed=data.get('sessions_completed')
     )
     db.session.add(new_referral)
+    log_activity(clinician_id, "created", "referral", f"Create referral for {patient.full_name}")
     db.session.commit()
 
     return jsonify(serialize_referral(new_referral)), 201
@@ -528,6 +554,7 @@ def clinic_referrals():
             sessions_completed=sessions_completed
         )
         db.session.add(new_referral)
+        log_activity(clinician_id, "created", "referral", f"Created referral for {patient.full_name}")
         db.session.commit()
 
         return jsonify(serialize_referral(new_referral)), 201
@@ -558,6 +585,7 @@ def update_delete(id):
             if field in data:
                 setattr(referral, field, data[field])
 
+        log_activity(clinician_id, "updated", "referral", f"Updated referral for {referral.patients.full_name}")
         db.session.commit()
         return jsonify(serialize_referral(referral)), 200
     
@@ -567,6 +595,7 @@ def update_delete(id):
             return jsonify({"error": "Referral not found!"}), 404
         
         db.session.delete(referral)
+        log_activity(clinician_id, "deleted", "referral", f"Deleted referral for {referral.patients.full_name}")
         db.session.commit()
         return jsonify({"msg": "Referral deleted successfully!"}), 200
 
@@ -607,3 +636,41 @@ def get_weekly_sessions():
         return jsonify({"error": "No Sessions were found"}), 204
 
     return jsonify([s.to_dict() for s in sessions])
+
+
+@api.route('/audit', methods=['GET'])
+@jwt_required()
+def get_activity():
+    identity = get_jwt_identity()
+    clinician_id = identity.get('clinician_id') if isinstance(identity, dict) else None
+    if clinician_id is None:
+        return jsonify({"error": "Clinician identity not found in token"}), 400
+
+    actions = (
+        AuditLog.query
+        .filter_by(clinician_id=clinician_id)
+        .order_by(AuditLog.created_at.desc())
+        .limit(50)
+        .all()
+    )
+
+    return jsonify([
+        {
+            "action": a.action,
+            "entity": a.entity,
+            "message": a.message,
+            "is_read": a.is_read,
+            "created_at": a.created_at.isoformat(),
+        }
+        for a in actions
+    ]), 200
+
+#helper function to call to all post methods
+def log_activity(clinician_id, action, entity, message):
+    log = AuditLog(
+        clinician_id=clinician_id,
+        action=action,
+        entity=entity,
+        message=message,
+    )
+    db.session.add(log)
