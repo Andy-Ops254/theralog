@@ -1,4 +1,3 @@
-import React from 'react'
 import Register from './Register'
 import Landing from './Landing'
 import SignIn from './SignIn'
@@ -11,6 +10,7 @@ import Patients from '../pages/Patients'
 import PatientProfile from '../pages/PatientProfile'
 import Referrals from '../pages/Referrals'
 import Settings from '../pages/Settings'
+import Notifications from '../pages/Notifications'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
 function App() {
@@ -33,6 +33,7 @@ function App() {
         <Route path="/patients" element={<Patients />} />
         <Route path="/patients/:id" element={<PatientProfile />} />
         <Route path="/referrals" element={<Referrals />} />
+        <Route path="/notifications" element={<Notifications />} />
         <Route path="/settings" element={<Settings />} />
         {/* <Route index element={<Navigate replace to="/dashboard" />} /> */}
       </Route>

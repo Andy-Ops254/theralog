@@ -1,4 +1,3 @@
-import React from 'react'
 import { Stethoscope, List, BellDot, LogOut, Moon } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -56,7 +55,13 @@ function Navbar({ onToggleSidebar }) {
         </span>
 
         <div className="hidden items-center gap-2 rounded-2xl bg-white/10 px-2 py-2 text-slate-100 shadow-sm shadow-slate-950/10 sm:flex">
-          <button className="inline-flex h-11 w-11 items-center justify-center rounded-2xl text-[#12223E] transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-[#12223E]/30">
+          <button
+            type="button"
+            onClick={() => navigate('/notifications')}
+            aria-label="Open notifications"
+            title="Notifications"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl text-[#12223E] transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-[#12223E]/30"
+          >
             <BellDot className="h-5 w-5" />
           </button>
           <button className="inline-flex h-11 w-11 items-center justify-center rounded-2xl text-[#12223E] transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-[#12223E]/30">

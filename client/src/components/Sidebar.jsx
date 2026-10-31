@@ -1,6 +1,5 @@
-import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { HomeIcon, CalendarIcon, Users, UserIcon, ChartBarIcon, CogIcon, LogOut, BellDot, Moon } from 'lucide-react'
+import { HomeIcon, CalendarIcon, UserIcon, ChartBarIcon, CogIcon, LogOut, BellDot, Moon } from 'lucide-react'
 import SidebarLink from './SidebarLink'
 
 function Sidebar({ isExpanded }) {
@@ -27,18 +26,12 @@ function Sidebar({ isExpanded }) {
             <SidebarLink icon={<CalendarIcon />} label="Sessions" href="/sessions" isExpanded={isExpanded} />
             {/* <SidebarLink icon={<Users />} label="Psychologists" href="/psychologists" isExpanded={isExpanded} /> */}
             <SidebarLink icon={<ChartBarIcon />} label="Referrals" href="/referrals" isExpanded={isExpanded} />
+            <SidebarLink icon={<BellDot />} label="Notifications" href="/notifications" isExpanded={isExpanded} />
             <SidebarLink icon={<CogIcon />} label="Settings" href="/settings" isExpanded={isExpanded} />
         </nav>
 
         <div className={`mt-auto flex flex-col gap-2 pt-6 ${isExpanded ? 'items-stretch px-2' : 'items-center px-0'}`}>
         <div className="flex flex-col gap-2 md:hidden">
-            <button className={`flex w-full items-center rounded-xl px-3 py-2 text-[#12223E] transition-all duration-200 hover:scale-105 hover:bg-slate-100/40 ${isExpanded ? 'justify-start gap-3' : 'justify-center px-2'}`}>
-            <span className="rounded-xl bg-white/20 p-2 shadow-[inset_2px_2px_4px_rgba(255,255,255,0.3),inset_-2px_-2px_4px_rgba(0,0,0,0.1)]">
-                <BellDot className="h-5 w-5 text-cyan-500" />
-            </span>
-            <span className={`text-sm font-semibold ${isExpanded ? 'block' : 'hidden'}`}>Notifications</span>
-            </button>
-
             <button className={`flex w-full items-center rounded-xl px-3 py-2 text-[#12223E] transition-all duration-200 hover:scale-105 hover:bg-slate-100/40 ${isExpanded ? 'justify-start gap-3' : 'justify-center px-2'}`}>
             <span className="rounded-xl bg-white/20 p-2 shadow-[inset_2px_2px_4px_rgba(255,255,255,0.3),inset_-2px_-2px_4px_rgba(0,0,0,0.1)]">
                 <Moon className="h-5 w-5 text-cyan-500" />
